@@ -49,7 +49,7 @@ app.get('/api/me', requireAuth, (req, res) => res.json({ user: { email: req.user
 // ── Anthropic helper ──────────────────────────────────────────────
 async function callAnthropic(prompt, useWebSearch = true) {
   const body = {
-    model: 'claude-sonnet-4-20250514',
+    model: 'claude-haiku-4-5',
     max_tokens: 2000,
     messages: [{ role: 'user', content: prompt }]
   };
