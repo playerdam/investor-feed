@@ -150,7 +150,7 @@ Impact-kriterier:
 - LOW: Baggrundsinformation`;
 
   try {
-    let data = await callAnthropic(prompt, true);
+    let data = await callAnthropic(prompt, false);
     if (!data.content || data.error) {
       console.log('Web search fejlede, prøver uden...');
       data = await callAnthropic(prompt, false);
