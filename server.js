@@ -68,30 +68,79 @@ async function callAnthropic(prompt, useWebSearch = true) {
   return r.json();
 }
 
-// ── Chart data (Yahoo Finance) ────────────────────────────────────
-const RANGE_MAP = { '1D': '1d', '1W': '5d', '1M': '1mo', '3M': '3mo', '1Y': '1y' };
-const INTERVAL_MAP = { '1D': '5m', '1W': '60m', '1M': '1d', '3M': '1d', '1Y': '1wk' };
+// ── Chart data (Finnhub) ─────────────────────────────────────────
+const FINNHUB_KEY = process.env.FINNHUB_API_KEY;
+
+// Map our range codes to Finnhub resolution + from/to
+function finnhubParams(range) {
+  const now = Math.floor(Date.now() / 1000);
+  const DAY = 86400;
+  switch(range) {
+    case '1D': return { resolution: '30', from: now - DAY, to: now };
+    case '1W': return { resolution: '60', from: now - 7 * DAY, to: now };
+    case '1M': return { resolution: 'D',  from: now - 30 * DAY, to: now };
+    case '3M': return { resolution: 'D',  from: now - 90 * DAY, to: now };
+    case '1Y': return { resolution: 'W',  from: now - 365 * DAY, to: now };
+    default:   return { resolution: '60', from: now - 7 * DAY, to: now };
+  }
+}
+
+// Convert ticker to Finnhub format (crypto needs BINANCE: prefix)
+function toFinnhubSymbol(ticker) {
+  if (ticker.endsWith('-USD')) {
+    const coin = ticker.replace('-USD', '');
+    return `BINANCE:${coin}USDT`;
+  }
+  // Danish tickers: NOVO B -> NOVO-B.CO
+  if (ticker.endsWith(' B') || ticker.endsWith(' A')) {
+    return ticker.replace(' ', '-') + '.CO';
+  }
+  return ticker;
+}
 
 app.get('/api/chart/:ticker', requireAuth, async (req, res) => {
   const { ticker } = req.params;
-  const range = RANGE_MAP[req.query.range] || '5d';
-  const interval = INTERVAL_MAP[req.query.range] || '60m';
+  const range = req.query.range || '1W';
+  if (!FINNHUB_KEY) return res.status(500).json({ error: 'Finnhub API-nøgle mangler' });
+
   try {
-    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?range=${range}&interval=${interval}&includePrePost=false`;
-    const r = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
-    const data = await r.json();
-    const result = data?.chart?.result?.[0];
-    if (!result) return res.status(404).json({ error: 'Ticker ikke fundet' });
-    const timestamps = result.timestamp || [];
-    const closes = result.indicators?.quote?.[0]?.close || [];
-    const meta = result.meta || {};
-    const points = timestamps.map((t, i) => ({
+    const symbol = toFinnhubSymbol(ticker);
+    const { resolution, from, to } = finnhubParams(range);
+
+    // Get candles
+    const candleUrl = `https://finnhub.io/api/v1/stock/candle?symbol=${encodeURIComponent(symbol)}&resolution=${resolution}&from=${from}&to=${to}&token=${FINNHUB_KEY}`;
+    const quoteUrl  = `https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(symbol)}&token=${FINNHUB_KEY}`;
+
+    const [candleRes, quoteRes] = await Promise.all([
+      fetch(candleUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } }),
+      fetch(quoteUrl,  { headers: { 'User-Agent': 'Mozilla/5.0' } })
+    ]);
+
+    const candles = await candleRes.json();
+    const quote   = await quoteRes.json();
+
+    if (candles.s === 'no_data' || !candles.t?.length) {
+      return res.status(404).json({ error: 'Ingen kursdata tilgængeligt for ' + ticker });
+    }
+
+    const points = candles.t.map((t, i) => ({
       t: t * 1000,
-      v: closes[i] != null ? +closes[i].toFixed(4) : null
+      v: candles.c[i] != null ? +candles.c[i].toFixed(4) : null
     })).filter(p => p.v !== null);
-    res.json({ ticker: meta.symbol, currency: meta.currency, price: meta.regularMarketPrice, prevClose: meta.chartPreviousClose, exchange: meta.exchangeName, points });
+
+    const isCrypto = ticker.endsWith('-USD');
+    const currency = isCrypto ? 'USD' : (ticker.includes('.CO') || ticker.endsWith(' B') || ticker.endsWith(' A') ? 'DKK' : 'USD');
+
+    res.json({
+      ticker,
+      currency,
+      price: quote.c || points.at(-1)?.v,
+      prevClose: quote.pc,
+      exchange: isCrypto ? 'Crypto' : 'Stock',
+      points
+    });
   } catch (e) {
-    console.error('Chart fejl:', e);
+    console.error('Chart fejl:', e.message);
     res.status(500).json({ error: 'Kunne ikke hente kursdata' });
   }
 });
