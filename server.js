@@ -49,7 +49,7 @@ app.get('/api/me', requireAuth, (req, res) => res.json({ user: { email: req.user
 // ── Anthropic helper ──────────────────────────────────────────────
 async function callAnthropic(prompt, useWebSearch = true) {
   const body = {
-    model: 'claude-haiku-4-5',
+    model: 'claude-sonnet-4-20250514',
     max_tokens: 2000,
     messages: [{ role: 'user', content: prompt }]
   };
@@ -124,24 +124,43 @@ app.get('/api/search', requireAuth, (req, res) => {
   res.json({ results });
 });
 
-// ── News ──────────────────────────────────────────────────────────
+// ── News (NewsAPI + Claude analyse) ──────────────────────────────
+async function fetchNewsAPI(tickers) {
+  const cleanTickers = tickers.map(t => t.replace('-USD', '').replace(' B', ''));
+  const q = cleanTickers.join(' OR ');
+  const url = `https://newsapi.org/v2/everything?q=${encodeURIComponent(q)}&language=en&sortBy=publishedAt&pageSize=20&apiKey=${process.env.NEWS_API_KEY}`;
+  const r = await fetch(url);
+  const d = await r.json();
+  if (d.status !== 'ok') throw new Error('NewsAPI fejl: ' + d.message);
+  return (d.articles || []).slice(0, 15).map(a => `- ${a.title} (${a.source?.name}, ${new Date(a.publishedAt).toLocaleDateString('da')})`).join('\n');
+}
+
 app.post('/api/news', requireAuth, async (req, res) => {
   const { tickers, category, systemPrompt } = req.body;
   if (!tickers?.length) return res.status(400).json({ error: 'Ingen tickers' });
 
-  const prompt = `${systemPrompt}
+  try {
+    // Hent live nyheder fra NewsAPI
+    let newsContext = '';
+    try {
+      newsContext = await fetchNewsAPI(tickers);
+    } catch (e) {
+      console.log('NewsAPI fejlede:', e.message);
+    }
+
+    const prompt = `${systemPrompt}
 
 Aktiver/emner: ${tickers.join(', ')}
 
-Returner KUN et JSON-array (ingen markdown, ingen backticks) med max 10 nyheder sorteret efter investeringsrelevans:
+${newsContext ? `Her er de seneste nyheder fra de last 24 timer:\n${newsContext}\n\nAnalyser disse nyheder og` : 'Baseret på din viden,'} returner KUN et JSON-array (ingen markdown, ingen backticks) med max 10 nyheder sorteret efter investeringsrelevans:
 [{
-  "ticker": "TICKER",
+  "ticker": "TICKER eller EMNE",
   "headline": "Overskrift på dansk (max 15 ord)",
-  "summary": "2-3 sætninger investoranalyse på dansk",
-  "impact": "HIGH" | "MEDIUM" | "LOW",
-  "sentiment": "bullish" | "bearish" | "neutral",
-  "timeAgo": "fx '3 timer siden'",
-  "source": "fx Reuters"
+  "summary": "2-3 sætninger investoranalyse på dansk — hvad betyder det for kursen?",
+  "impact": "HIGH",
+  "sentiment": "bullish",
+  "timeAgo": "fx 'i dag' eller 'i går'",
+  "source": "kildenavn fra listen ovenfor"
 }]
 
 Impact-kriterier:
@@ -149,12 +168,7 @@ Impact-kriterier:
 - MEDIUM: Sektortrends, analytikervurderinger
 - LOW: Baggrundsinformation`;
 
-  try {
-    let data = await callAnthropic(prompt, false);
-    if (!data.content || data.error) {
-      console.log('Web search fejlede, prøver uden...');
-      data = await callAnthropic(prompt, false);
-    }
+    const data = await callAnthropic(prompt, false);
 
     let jsonText = '';
     for (const block of (data.content || [])) {
