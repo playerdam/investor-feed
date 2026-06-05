@@ -105,7 +105,14 @@ html,body{height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:
 .wadd-btn:hover{color:var(--text3);border-color:#aaa}
 .add-inline{display:none;align-items:center;gap:7px}
 .add-inline.on{display:inline-flex}
-.ticker-in{background:var(--white);border:1px solid var(--border2);border-radius:var(--r);padding:5px 10px;font-size:12px;font-family:'Inter',sans-serif;color:var(--text);outline:none;width:130px;transition:border-color .15s}
+.ticker-in{background:var(--white);border:1px solid var(--border2);border-radius:var(--r);padding:5px 10px;font-size:12px;font-family:'Inter',sans-serif;color:var(--text);outline:none;width:160px;transition:border-color .15s}
+.autocomplete-wrap{position:relative;display:inline-block}
+.autocomplete-list{position:absolute;top:calc(100% + 4px);left:0;width:240px;background:var(--white);border:0.5px solid var(--border2);border-radius:var(--r);box-shadow:0 4px 16px rgba(0,0,0,0.08);z-index:100;overflow:hidden}
+.autocomplete-item{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;cursor:pointer;transition:background .1s;gap:8px}
+.autocomplete-item:hover{background:var(--bg)}
+.ac-name{font-size:12px;font-weight:500;color:var(--text)}
+.ac-ticker{font-size:11px;color:var(--text3)}
+.ac-exchange{font-size:10px;color:var(--text4);background:#f0ede8;padding:1px 5px;border-radius:4px;flex-shrink:0}
 .ticker-in:focus{border-color:#888}
 .bsm{padding:5px 11px;border-radius:var(--r);font-size:12px;cursor:pointer;border:none;font-family:'Inter',sans-serif;font-weight:500;transition:opacity .15s}
 .bsm:hover{opacity:.8}
@@ -469,8 +476,12 @@ function renderWatchlist(containerId){
     h += `<button class="wadd-btn" onclick="openAdd('${containerId}')">+ tilføj</button>`;
   } else {
     h += `<div class="add-inline on" id="${addId}">
-      <input type="text" class="ticker-in" id="${addId}-input" placeholder="Ticker / emne" onkeydown="if(event.key==='Enter')confirmAdd('${containerId}')"/>
-      <button class="bsm bsm-ok" onclick="confirmAdd('${containerId}')">Tilføj</button>
+      <div class="autocomplete-wrap">
+        <input type="text" class="ticker-in" id="${addId}-input" placeholder="Søg ticker eller navn..." autocomplete="off"
+          oninput="onTickerInput(event,'${containerId}')"
+          onkeydown="onTickerKeydown(event,'${containerId}')"/>
+        <div class="autocomplete-list" id="${addId}-list" style="display:none"></div>
+      </div>
       <button class="bsm bsm-no" onclick="closeAdd('${containerId}')">✕</button>
     </div>`;
   }
@@ -478,8 +489,54 @@ function renderWatchlist(containerId){
   if(addOpen[containerId]) setTimeout(()=>document.getElementById(addId+'-input')?.focus(),40);
 }
 
+let acSelected = -1;
+
+async function onTickerInput(e, containerId){
+  const q = e.target.value.trim();
+  const listEl = document.getElementById(containerId+'-add-list');
+  if(!q){ listEl.style.display='none'; return; }
+  try{
+    const r = await fetch(`/api/search?q=${encodeURIComponent(q)}`,{credentials:'include'});
+    const d = await r.json();
+    if(!d.results?.length){ listEl.style.display='none'; return; }
+    acSelected = -1;
+    listEl.innerHTML = d.results.map((item,i)=>`
+      <div class="autocomplete-item" onclick="selectTicker_ac('${containerId}','${item.t}')" data-idx="${i}">
+        <div><div class="ac-name">${item.n}</div><div class="ac-ticker">${item.t}</div></div>
+        <span class="ac-exchange">${item.e}</span>
+      </div>`).join('');
+    listEl.style.display='block';
+  }catch(e){ listEl.style.display='none'; }
+}
+
+function onTickerKeydown(e, containerId){
+  const listEl = document.getElementById(containerId+'-add-list');
+  const items = listEl.querySelectorAll('.autocomplete-item');
+  if(e.key==='ArrowDown'){ e.preventDefault(); acSelected=Math.min(acSelected+1,items.length-1); items.forEach((el,i)=>el.style.background=i===acSelected?'var(--bg)':''); }
+  else if(e.key==='ArrowUp'){ e.preventDefault(); acSelected=Math.max(acSelected-1,0); items.forEach((el,i)=>el.style.background=i===acSelected?'var(--bg)':''); }
+  else if(e.key==='Enter'){
+    e.preventDefault();
+    if(acSelected>=0 && items[acSelected]){ items[acSelected].click(); }
+    else { confirmAddRaw(containerId, e.target.value.trim().toUpperCase()); }
+  }
+  else if(e.key==='Escape'){ closeAdd(containerId); }
+}
+
+function selectTicker_ac(containerId, ticker){
+  confirmAddRaw(containerId, ticker);
+}
+
+function confirmAddRaw(containerId, val){
+  if(!val){ closeAdd(containerId); return; }
+  if(!watchlists[currentCat].includes(val)) watchlists[currentCat].push(val);
+  localStorage.setItem('if_watchlists',JSON.stringify(watchlists));
+  closeAdd(containerId);
+  renderWatchlist(containerId==='chartWl'?'newsWl':'chartWl');
+  if(containerId==='chartWl') renderChartsPanel();
+}
+
 function openAdd(id){ addOpen[id]=true; renderWatchlist(id); }
-function closeAdd(id){ addOpen[id]=false; renderWatchlist(id); }
+function closeAdd(id){ addOpen[id]=false; acSelected=-1; renderWatchlist(id); }
 function removeTicker(containerId, t){
   watchlists[currentCat]=(watchlists[currentCat]||[]).filter(x=>x!==t);
   localStorage.setItem('if_watchlists',JSON.stringify(watchlists));
@@ -489,13 +546,7 @@ function removeTicker(containerId, t){
 }
 function confirmAdd(containerId){
   const el = document.getElementById(containerId+'-add-input');
-  const val = el?.value?.trim().toUpperCase();
-  if(!val){closeAdd(containerId);return;}
-  if(!watchlists[currentCat].includes(val)) watchlists[currentCat].push(val);
-  localStorage.setItem('if_watchlists',JSON.stringify(watchlists));
-  closeAdd(containerId);
-  renderWatchlist(containerId==='chartWl'?'newsWl':'chartWl');
-  if(containerId==='chartWl') renderChartsPanel();
+  confirmAddRaw(containerId, el?.value?.trim().toUpperCase());
 }
 
 // ── FETCH ALL ─────────────────────────────────────────────────────
