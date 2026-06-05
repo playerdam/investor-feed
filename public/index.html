@@ -9,39 +9,21 @@
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;1,400&family=Inter:wght@400;500&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;font-family:'Inter',sans-serif;background:#2C2720;color:#F0EAE0;font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
-input,button,select{font-family:'Inter',sans-serif}
-
-/* PALETTE */
 :root{
-  --bg:#2C2720;
-  --bg2:#332E27;
-  --surface:#3A342C;
-  --surface2:#403930;
-  --border:#4A4238;
-  --border2:#5C5246;
-  --text:#F0EAE0;
-  --text2:#B8AFA3;
-  --text3:#8A8178;
-  --text4:#5E5750;
-  --green:#5BAF84;
-  --green-bg:#1E3328;
-  --green-text:#7DCFA0;
-  --red:#D4735A;
-  --red-bg:#32201A;
-  --red-text:#E8917B;
-  --amber:#C4963A;
-  --amber-bg:#2E2010;
-  --amber-text:#DBA84A;
-  --blue:#6B9FD4;
-  --blue-bg:#1A2535;
-  --blue-text:#8BBCE0;
-  --purple-bg:#1E1A35;
-  --purple-text:#9B8FD4;
+  --bg:#2C2720;--bg2:#332E27;--surface:#3A342C;--surface2:#403930;
+  --border:#4A4238;--border2:#5C5246;
+  --text:#F0EAE0;--text2:#B8AFA3;--text3:#8A8178;--text4:#5E5750;
+  --green:#5BAF84;--green-bg:#1E3328;--green-text:#7DCFA0;
+  --red:#D4735A;--red-bg:#32201A;--red-text:#E8917B;
+  --amber:#C4963A;--amber-bg:#2E2010;--amber-text:#DBA84A;
+  --blue:#6B9FD4;--blue-bg:#1A2535;--blue-text:#8BBCE0;
+  --purple:#9B8FD4;--purple-bg:#1E1A35;--purple-text:#B8AFEC;
 }
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+input,button{font-family:'Inter',sans-serif}
 
-/* LAYOUT */
+/* AUTH */
 #auth{display:flex;align-items:center;justify-content:center;min-height:100vh;background:var(--bg)}
 #auth.hidden{display:none}
 #app{display:none;flex-direction:column;height:100vh;overflow:hidden}
@@ -49,17 +31,17 @@ input,button,select{font-family:'Inter',sans-serif}
 
 /* NAV */
 .nav{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:48px;background:var(--bg2);border-bottom:0.5px solid var(--border);flex-shrink:0}
-.nav-brand{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.nav-logo{width:24px;height:24px;background:var(--text);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.nav-logo i{font-size:12px;color:var(--bg)}
-.nav-name{font-size:14px;font-weight:500;color:var(--text)}
-.nav-links{display:flex;height:48px;align-items:stretch}
-.nlink{display:flex;align-items:center;padding:0 14px;font-size:13px;font-weight:500;color:var(--text3);border-bottom:2px solid transparent;cursor:pointer;gap:5px;white-space:nowrap;transition:color .15s}
-.nlink:hover{color:var(--text2)}
-.nlink.on{color:var(--text);border-bottom-color:var(--text2)}
-.nlink i{font-size:15px}
-.nav-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.refresh-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:var(--text);color:var(--bg);border:none;border-radius:8px;font-size:12px;font-weight:500;cursor:pointer;transition:opacity .15s;white-space:nowrap}
+.brand{display:flex;align-items:center;gap:8px}
+.brand-dot{width:24px;height:24px;background:var(--text);border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.brand-dot i{font-size:12px;color:var(--bg)}
+.brand-name{font-size:14px;font-weight:500;color:var(--text)}
+.navlinks{display:flex;height:48px}
+.nl{display:flex;align-items:center;padding:0 14px;font-size:13px;font-weight:500;color:var(--text3);border-bottom:2px solid transparent;cursor:pointer;gap:5px;transition:color .15s;white-space:nowrap}
+.nl:hover{color:var(--text2)}
+.nl.on{color:var(--text);border-bottom-color:var(--text2)}
+.nl i{font-size:14px}
+.navright{display:flex;align-items:center;gap:8px}
+.refresh-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:var(--text);color:var(--bg);border:none;border-radius:7px;font-size:12px;font-weight:500;cursor:pointer;transition:opacity .15s;white-space:nowrap}
 .refresh-btn:hover{opacity:.85}
 .refresh-btn:disabled{opacity:.4;cursor:not-allowed}
 .refresh-btn i{font-size:13px}
@@ -69,20 +51,19 @@ input,button,select{font-family:'Inter',sans-serif}
 
 /* TICKER STRIP */
 .strip{display:flex;align-items:center;padding:0 20px;height:36px;background:var(--bg);border-bottom:0.5px solid var(--border);flex-shrink:0;overflow:hidden;gap:0}
-.si{display:flex;align-items:center;gap:5px;padding-right:16px;font-size:12px;white-space:nowrap;flex-shrink:0}
+.si{display:flex;align-items:center;gap:5px;padding-right:16px;font-size:12px;flex-shrink:0}
 .si-t{font-weight:500;color:var(--text)}
 .si-p{color:var(--text3)}
 .si-u{font-size:10px;font-weight:500;padding:1px 5px;border-radius:3px;background:var(--green-bg);color:var(--green-text)}
 .si-d{font-size:10px;font-weight:500;padding:1px 5px;border-radius:3px;background:var(--red-bg);color:var(--red-text)}
 .sdiv{width:0.5px;height:12px;background:var(--border);margin-right:16px;flex-shrink:0}
-.stime{font-size:11px;color:var(--text4);margin-left:auto;flex-shrink:0}
+.strip-time{font-size:11px;color:var(--text4);margin-left:auto;flex-shrink:0}
 
 /* PAGES */
 .page{display:none;flex:1;overflow:hidden}
 .page.on{display:flex;flex-direction:column}
-.page-scroll{flex:1;overflow-y:auto;background:var(--bg)}
 
-/* ── AUTH ── */
+/* AUTH */
 .lcard{width:380px;background:var(--surface);border-radius:16px;border:0.5px solid var(--border);overflow:hidden}
 .lcard-body{padding:36px 32px 28px}
 .lbrand{display:flex;align-items:center;gap:8px;margin-bottom:32px}
@@ -94,7 +75,7 @@ input,button,select{font-family:'Inter',sans-serif}
 .lsub{font-size:13px;color:var(--text3);margin-bottom:24px}
 .flabel{display:block;font-size:10px;font-weight:500;color:var(--text4);letter-spacing:.05em;text-transform:uppercase;margin-bottom:5px}
 .finput{width:100%;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:10px 13px;font-size:14px;color:var(--text);outline:none;transition:border-color .15s;margin-bottom:12px}
-.finput:focus{border-color:var(--border2);background:var(--surface)}
+.finput:focus{border-color:var(--text3)}
 .lbtn{width:100%;background:var(--text);color:var(--bg);border:none;border-radius:8px;padding:12px;font-size:14px;font-weight:500;cursor:pointer;margin-top:8px;transition:opacity .15s}
 .lbtn:hover{opacity:.85}
 .lbtn:disabled{opacity:.4;cursor:not-allowed}
@@ -104,53 +85,9 @@ input,button,select{font-family:'Inter',sans-serif}
 .auth-err{background:var(--red-bg);border:0.5px solid rgba(212,115,90,.2);border-radius:8px;padding:9px 12px;font-size:12px;color:var(--red-text);margin-bottom:14px;display:none}
 .auth-ok{background:var(--green-bg);border:0.5px solid rgba(91,175,132,.2);border-radius:8px;padding:9px 12px;font-size:12px;color:var(--green-text);margin-bottom:14px;display:none}
 
-/* ── MIN LISTE ── */
-.lpage{padding:20px;max-width:860px}
-.lpage-head{margin-bottom:18px}
-.lpage-title{font-size:20px;font-weight:500;color:var(--text);margin-bottom:3px}
-.lpage-sub{font-size:13px;color:var(--text3)}
-.searchbar{display:flex;align-items:center;gap:8px;padding:9px 13px;background:var(--surface);border:0.5px solid var(--border2);border-radius:8px;margin-bottom:20px}
-.searchbar i{font-size:16px;color:var(--text3);flex-shrink:0}
-.searchbar input{border:none;outline:none;font-size:13px;color:var(--text);background:transparent;width:100%}
-.searchbar input::placeholder{color:var(--text4)}
-.ac-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:var(--surface2);border:0.5px solid var(--border2);border-radius:8px;box-shadow:0 4px 16px rgba(0,0,0,.3);z-index:50;overflow:hidden;display:none}
-.ac-item{display:flex;align-items:center;justify-content:space-between;padding:9px 13px;cursor:pointer;transition:background .1s;gap:8px}
-.ac-item:hover{background:var(--surface)}
-.ac-item-name{font-size:13px;font-weight:500;color:var(--text)}
-.ac-item-sub{font-size:11px;color:var(--text3)}
-.ac-item-ex{font-size:10px;font-weight:500;padding:1px 6px;border-radius:3px;background:var(--bg);color:var(--text3);flex-shrink:0}
-.sec-label{font-size:11px;font-weight:500;color:var(--text3);letter-spacing:.04em;margin-bottom:8px}
-.agrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:18px}
-.acard{background:var(--surface);border:0.5px solid var(--border);border-radius:12px;padding:11px 12px;cursor:pointer;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;transition:all .15s;min-width:0}
-.acard:hover{border-color:var(--border2)}
-.acard.sel{border:1.5px solid var(--text2);background:var(--surface2)}
-.acard-l{min-width:0;flex:1}
-.acard-ticker{font-size:13px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.acard-name{font-size:11px;color:var(--text3);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.acard-r{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
-.chg-u{font-size:11px;font-weight:500;color:var(--green-text)}
-.chg-d{font-size:11px;font-weight:500;color:var(--red-text)}
-.ck{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--border2);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .15s}
-.acard.sel .ck{background:var(--text2);border-color:var(--text2)}
-.acard.sel .ck i{color:var(--bg)}
-.ck i{font-size:9px;color:transparent}
-.mybar{background:var(--surface);border:0.5px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px}
-.mybar-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-.mybar-title{font-size:13px;font-weight:500;color:var(--text)}
-.mybar-clear{font-size:12px;color:var(--text3);cursor:pointer;transition:color .15s}
-.mybar-clear:hover{color:var(--red-text)}
-.chips{display:flex;flex-wrap:wrap;gap:5px}
-.chip{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;background:var(--bg2);border:0.5px solid var(--border2);border-radius:999px;font-size:12px;font-weight:500;color:var(--text2)}
-.chip-x{font-size:10px;color:var(--text3);cursor:pointer;line-height:1;transition:color .15s}
-.chip-x:hover{color:var(--red-text)}
-.empty-chips{font-size:12px;color:var(--text4);font-style:italic}
-.gobtn{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px;background:var(--text);color:var(--bg);border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;transition:opacity .15s}
-.gobtn:hover{opacity:.85}
-.gobtn i{font-size:16px}
-
-/* ── FEED ── */
+/* FEED PAGE */
 .feed-layout{display:grid;grid-template-columns:minmax(0,1fr) 220px;flex:1;overflow:hidden}
-.feed-main{padding:20px;border-right:0.5px solid var(--border);overflow-y:auto;min-width:0}
+.feed-main{padding:20px;border-right:0.5px solid var(--border);overflow-y:auto;min-width:0;background:var(--bg)}
 .feed-sb{padding:20px 16px;overflow-y:auto;background:var(--bg2)}
 .feed-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
 .feed-hdr-l{font-size:11px;font-weight:500;color:var(--text3);letter-spacing:.04em}
@@ -160,7 +97,7 @@ input,button,select{font-family:'Inter',sans-serif}
 .hbadge i{font-size:10px}
 .hbadge-m{background:var(--amber-bg);color:var(--amber-text)}
 .hbadge-l{background:var(--surface2);color:var(--text3)}
-.hhl{font-family:'Playfair Display',serif;font-size:18px;font-weight:600;color:var(--text);line-height:1.35;margin-bottom:7px;letter-spacing:-.01em}
+.hhl{font-family:'Playfair Display',serif;font-size:18px;font-weight:600;color:var(--text);line-height:1.35;margin-bottom:7px}
 .hbody{font-size:13px;color:var(--text2);line-height:1.65;margin-bottom:10px}
 .hmeta{display:flex;align-items:center;gap:7px;flex-wrap:wrap}
 .tag{font-size:10px;font-weight:500;padding:2px 7px;border-radius:3px}
@@ -172,6 +109,8 @@ input,button,select{font-family:'Inter',sans-serif}
 .bear{font-size:11px;font-weight:500;color:var(--red)}
 .neut{font-size:11px;color:var(--text3)}
 .mtime{font-size:11px;color:var(--text4);margin-left:auto}
+.rdlink{font-size:11px;color:var(--blue);display:flex;align-items:center;gap:2px;cursor:pointer;white-space:nowrap}
+.rdlink i{font-size:11px}
 .story{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--border);min-width:0}
 .story:last-child{border-bottom:none}
 .sdot{width:7px;height:7px;border-radius:2px;flex-shrink:0;margin-top:5px}
@@ -186,8 +125,6 @@ input,button,select{font-family:'Inter',sans-serif}
 .empty-feed-s{font-size:12px;color:var(--text4)}
 .skel{height:68px;background:var(--surface);border-radius:8px;margin-bottom:8px;animation:pulse 1.4s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-
-/* SIDEBAR */
 .sb-sec{margin-bottom:20px}
 .sb-lbl{font-size:11px;font-weight:500;color:var(--text3);letter-spacing:.04em;margin-bottom:10px}
 .stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px}
@@ -200,38 +137,90 @@ input,button,select{font-family:'Inter',sans-serif}
 .pf-t{font-size:13px;font-weight:500;color:var(--text)}
 .pf-n{font-size:11px;color:var(--text3)}
 .pf-right{text-align:right}
-.pf-p{font-size:13px;font-weight:500;color:#1a1a1a}
+.pf-p{font-size:13px;font-weight:500;color:var(--text)}
 .pf-c{font-size:11px;font-weight:500}
 
-/* ── GRAFER ── */
-.grafer-layout{display:grid;grid-template-columns:minmax(0,1fr) 220px;flex:1;overflow:hidden}
-.grafer-main{padding:20px;border-right:0.5px solid var(--border);overflow-y:auto;min-width:0}
-.grafer-sb{padding:20px 16px;overflow-y:auto;background:var(--bg2)}
-.gcards{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin-bottom:16px}
-.gcard{background:var(--surface);border:0.5px solid var(--border);border-radius:12px;padding:13px;cursor:pointer;transition:border-color .15s;min-width:0}
-.gcard:hover{border-color:var(--border2)}
-.gcard.sel{border:1.5px solid var(--text2)}
-.gcard-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px}
-.gcard-ticker{font-size:11px;font-weight:500;color:var(--text3);letter-spacing:.04em}
-.gcard-chg{font-size:11px;font-weight:500;padding:2px 6px;border-radius:3px}
-.gcard-price{font-size:19px;font-weight:500;color:var(--text);letter-spacing:-.03em;line-height:1.2;margin-bottom:1px}
-.gcard-name{font-size:11px;color:var(--text4);margin-bottom:10px}
-.gcard-spark{height:44px}
-.chart-big{background:var(--surface);border:0.5px solid var(--border);border-radius:12px;padding:18px;margin-bottom:16px}
-.cb-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
-.cb-name{font-size:12px;color:var(--text3);margin-bottom:4px}
-.cb-price-row{display:flex;align-items:baseline;gap:10px}
-.cb-price{font-size:26px;font-weight:500;color:var(--text);letter-spacing:-.04em}
-.cb-chg{font-size:13px;font-weight:500}
-.range-tabs{display:flex;gap:3px;flex-shrink:0}
-.rtab{padding:5px 10px;font-size:11px;font-weight:500;color:var(--text3);border-radius:7px;cursor:pointer;border:none;background:transparent;transition:all .15s}
-.rtab:hover{background:var(--surface2);color:var(--text2)}
-.rtab.on{background:var(--text2);color:var(--bg)}
-.cb-chart-wrap{height:180px}
-.grafer-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:60px 0;color:var(--text3);gap:8px;text-align:center}
-.grafer-empty i{font-size:32px;opacity:.3}
-.grafer-empty-t{font-size:14px;font-weight:500;color:var(--text2)}
-.grafer-empty-s{font-size:12px;color:var(--text4)}
+/* MINE LISTER PAGE */
+.lists-layout{display:grid;grid-template-columns:210px minmax(0,1fr);flex:1;overflow:hidden}
+.lists-sb{background:var(--bg2);border-right:0.5px solid var(--border);padding:16px 10px;overflow-y:auto;flex-shrink:0}
+.lists-sb-group{margin-bottom:20px}
+.lists-sb-group-label{font-size:10px;font-weight:500;color:var(--text4);letter-spacing:.07em;padding:0 8px;margin-bottom:6px;text-transform:uppercase}
+.lsb-item{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:8px;cursor:pointer;margin-bottom:2px;transition:background .12s;user-select:none}
+.lsb-item:hover{background:var(--surface)}
+.lsb-item.on{background:var(--surface2)}
+.lsb-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.lsb-name{font-size:13px;font-weight:500;color:var(--text2);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lsb-item.on .lsb-name{color:var(--text)}
+.lsb-count{font-size:11px;color:var(--text4);flex-shrink:0}
+.lsb-add{display:flex;align-items:center;gap:6px;padding:6px 10px;border-radius:8px;cursor:pointer;color:var(--text4);font-size:12px;transition:color .12s;margin-top:2px}
+.lsb-add:hover{color:var(--text3)}
+.lsb-add i{font-size:13px}
+.lsb-indent{padding-left:8px}
+
+.lists-main{padding:20px;overflow-y:auto;background:var(--bg);min-width:0}
+.lists-main-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.lm-title-row{display:flex;align-items:center;gap:8px}
+.lm-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.lm-title{font-size:18px;font-weight:500;color:var(--text)}
+.lm-edit{font-size:13px;color:var(--text3);cursor:pointer;padding:4px;transition:color .15s}
+.lm-edit:hover{color:var(--text2)}
+.lm-sub{font-size:12px;color:var(--text3);margin-bottom:18px}
+.lm-add-btn{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:var(--surface2);border:0.5px solid var(--border2);border-radius:8px;font-size:12px;font-weight:500;color:var(--text2);cursor:pointer;white-space:nowrap;transition:border-color .15s}
+.lm-add-btn:hover{border-color:var(--text3);color:var(--text)}
+.lm-add-btn i{font-size:14px}
+.lm-sec-label{font-size:11px;font-weight:500;color:var(--text3);letter-spacing:.04em;margin-bottom:8px;margin-top:16px}
+.lm-sec-label:first-of-type{margin-top:0}
+
+/* ASSET ROW */
+.arow{display:grid;grid-template-columns:32px 1fr 110px auto auto auto;align-items:center;gap:14px;padding:11px 13px;background:var(--surface);border:0.5px solid var(--border);border-radius:10px;margin-bottom:6px;transition:border-color .12s}
+.arow:hover{border-color:var(--border2)}
+.arow.no-chart{grid-template-columns:32px 1fr auto auto auto}
+.alogo{width:32px;height:32px;border-radius:8px;background:var(--surface2);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
+.alogo img{width:100%;height:100%;object-fit:contain;border-radius:6px}
+.alogo-fb{font-size:13px;font-weight:500;color:var(--text2)}
+.ainfo{min-width:0}
+.aticker{font-size:13px;font-weight:500;color:var(--text)}
+.aname{font-size:11px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.achart-wrap{height:36px;width:110px;flex-shrink:0}
+.aprice{font-size:14px;font-weight:500;color:var(--text);white-space:nowrap;text-align:right}
+.achg{font-size:12px;font-weight:500;white-space:nowrap;text-align:right;min-width:52px}
+.chg-u{color:var(--green-text)}.chg-d{color:var(--red-text)}
+.arem{width:22px;height:22px;border-radius:5px;display:flex;align-items:center;justify-content:center;cursor:pointer;opacity:0;transition:opacity .12s;flex-shrink:0}
+.arow:hover .arem{opacity:1}
+.arem i{font-size:12px;color:var(--text3)}
+
+/* SEARCH MODAL */
+.modal-backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:100;display:flex;align-items:center;justify-content:center}
+.modal-backdrop.hidden{display:none}
+.modal{background:var(--surface);border:0.5px solid var(--border2);border-radius:14px;width:440px;max-width:90vw;overflow:hidden}
+.modal-head{padding:16px 20px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.modal-title{font-size:15px;font-weight:500;color:var(--text)}
+.modal-close{width:26px;height:26px;border-radius:6px;background:var(--surface2);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.modal-close i{font-size:14px;color:var(--text2)}
+.modal-search{display:flex;align-items:center;gap:8px;padding:14px 20px;border-bottom:0.5px solid var(--border)}
+.modal-search i{font-size:16px;color:var(--text3);flex-shrink:0}
+.modal-search input{border:none;outline:none;font-size:14px;color:var(--text);background:transparent;width:100%}
+.modal-search input::placeholder{color:var(--text4)}
+.modal-results{max-height:300px;overflow-y:auto}
+.mresult{display:flex;align-items:center;gap:12px;padding:11px 20px;cursor:pointer;transition:background .1s}
+.mresult:hover{background:var(--surface2)}
+.mr-logo{width:28px;height:28px;border-radius:6px;background:var(--bg2);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0}
+.mr-logo img{width:100%;height:100%;object-fit:contain;border-radius:5px}
+.mr-logo-fb{font-size:11px;font-weight:500;color:var(--text2)}
+.mr-ticker{font-size:13px;font-weight:500;color:var(--text)}
+.mr-name{font-size:11px;color:var(--text3)}
+.mr-ex{font-size:10px;font-weight:500;padding:1px 6px;border-radius:3px;background:var(--bg);color:var(--text3);margin-left:auto;flex-shrink:0}
+.mr-add{font-size:10px;font-weight:500;padding:1px 6px;border-radius:3px;background:var(--blue-bg);color:var(--blue-text);flex-shrink:0}
+.modal-empty{padding:32px 20px;text-align:center;font-size:13px;color:var(--text4)}
+
+/* RENAME INPUT */
+.rename-input{background:transparent;border:none;border-bottom:1px solid var(--border2);color:var(--text);font-size:18px;font-weight:500;outline:none;width:200px;padding:2px 0;font-family:'Inter',sans-serif}
+
+/* EMPTY STATE */
+.empty-state{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 0;gap:8px;text-align:center}
+.empty-state i{font-size:28px;color:var(--text4)}
+.empty-state-t{font-size:13px;font-weight:500;color:var(--text3)}
+.empty-state-s{font-size:12px;color:var(--text4)}
 </style>
 </head>
 <body>
@@ -276,16 +265,15 @@ input,button,select{font-family:'Inter',sans-serif}
 <!-- APP -->
 <div id="app">
   <div class="nav">
-    <div class="nav-brand">
-      <div class="nav-logo"><i class="ti ti-chart-line" aria-hidden="true"></i></div>
-      <span class="nav-name">Investor Feed</span>
+    <div class="brand">
+      <div class="brand-dot"><i class="ti ti-chart-line" aria-hidden="true"></i></div>
+      <span class="brand-name">Investor Feed</span>
     </div>
-    <div class="nav-links">
-      <div class="nlink on" id="nl-liste" onclick="showPage('liste')"><i class="ti ti-list-check" aria-hidden="true"></i> Min liste</div>
-      <div class="nlink" id="nl-feed" onclick="showPage('feed')"><i class="ti ti-news" aria-hidden="true"></i> Feed</div>
-      <div class="nlink" id="nl-grafer" onclick="showPage('grafer')"><i class="ti ti-chart-line" aria-hidden="true"></i> Grafer</div>
+    <div class="navlinks">
+      <div class="nl on" id="nl-feed" onclick="showPage('feed')"><i class="ti ti-news" aria-hidden="true"></i> Feed</div>
+      <div class="nl" id="nl-lister" onclick="showPage('lister')"><i class="ti ti-list-check" aria-hidden="true"></i> Mine lister</div>
     </div>
-    <div class="nav-right">
+    <div class="navright">
       <button class="refresh-btn" id="refreshBtn" onclick="refreshAll()">
         <i class="ti ti-refresh" id="refreshIcon" aria-hidden="true"></i> Opdater
       </button>
@@ -294,47 +282,17 @@ input,button,select{font-family:'Inter',sans-serif}
   </div>
 
   <div class="strip" id="strip">
-    <span class="stime" style="margin-left:0">Ingen aktiver valgt endnu</span>
-  </div>
-
-  <!-- MIN LISTE -->
-  <div class="page on" id="page-liste">
-    <div class="page-scroll">
-      <div class="lpage">
-        <div class="lpage-head">
-          <div class="lpage-title">Min liste</div>
-          <div class="lpage-sub">Vælg hvad du vil følge — feed og grafer opdateres automatisk</div>
-        </div>
-        <div style="position:relative">
-          <div class="searchbar">
-            <i class="ti ti-search" aria-hidden="true"></i>
-            <input type="text" id="searchIn" placeholder="Søg efter aktie eller krypto..." oninput="onSearch(this.value)" autocomplete="off">
-          </div>
-          <div class="ac-dropdown" id="acDrop"></div>
-        </div>
-        <div id="listeContent"></div>
-        <div class="mybar">
-          <div class="mybar-head">
-            <span class="mybar-title" id="mybarTitle">Din liste (0 valgt)</span>
-            <span class="mybar-clear" onclick="clearAll()">Ryd alle</span>
-          </div>
-          <div class="chips" id="myChips"><span class="empty-chips">Ingen valgt endnu — klik på aktiver ovenfor</span></div>
-        </div>
-        <button class="gobtn" onclick="showPage('feed')">
-          <i class="ti ti-arrow-right" aria-hidden="true"></i> Gå til mit feed
-        </button>
-      </div>
-    </div>
+    <span class="strip-time" style="margin-left:0;color:var(--text4);font-size:12px">Ingen aktiver tilføjet endnu</span>
   </div>
 
   <!-- FEED -->
-  <div class="page" id="page-feed">
+  <div class="page on" id="page-feed">
     <div class="feed-layout">
       <div class="feed-main" id="feedMain">
         <div class="empty-feed">
           <i class="ti ti-news" aria-hidden="true"></i>
           <div class="empty-feed-t">Ingen nyheder endnu</div>
-          <div class="empty-feed-s">Tryk "Opdater" for at hente de seneste nyheder</div>
+          <div class="empty-feed-s">Tilføj aktiver i "Mine lister" og tryk Opdater</div>
         </div>
       </div>
       <div class="feed-sb">
@@ -348,336 +306,501 @@ input,button,select{font-family:'Inter',sans-serif}
           </div>
         </div>
         <div class="sb-sec">
-          <div class="sb-lbl">Din portefølje</div>
-          <div id="pfList1"><span style="font-size:12px;color:var(--text4)">Ingen aktiver valgt</span></div>
+          <div class="sb-lbl">Portefølje</div>
+          <div id="pfList"><span style="font-size:12px;color:var(--text4)">Ingen aktiver endnu</span></div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- GRAFER -->
-  <div class="page" id="page-grafer">
-    <div class="grafer-layout">
-      <div class="grafer-main" id="graferMain">
-        <div class="chart-big" id="chartBig" style="display:none">
-          <div class="cb-top">
-            <div>
-              <div class="cb-name" id="cbName">—</div>
-              <div class="cb-price-row">
-                <div class="cb-price" id="cbPrice">—</div>
-                <div class="cb-chg" id="cbChg"></div>
-              </div>
-            </div>
-            <div class="range-tabs">
-              <button class="rtab" onclick="setRange('1D',this)">1D</button>
-              <button class="rtab on" onclick="setRange('1W',this)">1W</button>
-              <button class="rtab" onclick="setRange('1M',this)">1M</button>
-              <button class="rtab" onclick="setRange('3M',this)">3M</button>
-              <button class="rtab" onclick="setRange('1Y',this)">1Y</button>
-            </div>
-          </div>
-          <div class="cb-chart-wrap"><canvas id="bigCanvas"></canvas></div>
-        </div>
-        <div class="gcards" id="gcards"></div>
-        <div class="grafer-empty" id="graferEmpty">
-          <i class="ti ti-chart-bar" aria-hidden="true"></i>
-          <div class="grafer-empty-t">Ingen kursdata endnu</div>
-          <div class="grafer-empty-s">Tryk "Opdater" for at hente grafer</div>
-        </div>
-      </div>
-      <div class="grafer-sb">
-        <div class="sb-sec">
-          <div class="sb-lbl">Din portefølje</div>
-          <div id="pfList2"><span style="font-size:12px;color:var(--text4)">Ingen aktiver valgt</span></div>
-        </div>
-      </div>
+  <!-- MINE LISTER -->
+  <div class="page" id="page-lister">
+    <div class="lists-layout">
+      <div class="lists-sb" id="listsSb"></div>
+      <div class="lists-main" id="listsMain"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SEARCH MODAL -->
+<div class="modal-backdrop hidden" id="modalBackdrop" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-head">
+      <span class="modal-title" id="modalTitle">Tilføj aktiv</span>
+      <button class="modal-close" onclick="closeModal()"><i class="ti ti-x" aria-hidden="true"></i></button>
+    </div>
+    <div class="modal-search">
+      <i class="ti ti-search" aria-hidden="true"></i>
+      <input type="text" id="modalSearch" placeholder="Søg ticker eller navn..." oninput="onModalSearch(this.value)" autocomplete="off">
+    </div>
+    <div class="modal-results" id="modalResults">
+      <div class="modal-empty">Skriv for at søge</div>
     </div>
   </div>
 </div>
 
 <script>
-const ASSETS={
-  stocks:[
-    {t:'NOVO B',n:'Novo Nordisk',e:'CPH'},{t:'MAERSK B',n:'A.P. Møller-Mærsk',e:'CPH'},
-    {t:'DSV',n:'DSV A/S',e:'CPH'},{t:'ORSTED',n:'Ørsted',e:'CPH'},{t:'COLOB',n:'Coloplast',e:'CPH'},
-    {t:'GMAB',n:'Genmab',e:'CPH'},{t:'AAPL',n:'Apple',e:'NASDAQ'},{t:'MSFT',n:'Microsoft',e:'NASDAQ'},
-    {t:'NVDA',n:'NVIDIA',e:'NASDAQ'},{t:'GOOGL',n:'Alphabet',e:'NASDAQ'},{t:'AMZN',n:'Amazon',e:'NASDAQ'},
-    {t:'META',n:'Meta',e:'NASDAQ'},{t:'TSLA',n:'Tesla',e:'NASDAQ'},{t:'BABA',n:'Alibaba',e:'NYSE'},
-    {t:'DLO',n:'dLocal',e:'NASDAQ'},{t:'NFLX',n:'Netflix',e:'NASDAQ'},{t:'AMD',n:'AMD',e:'NASDAQ'},
-    {t:'JPM',n:'JPMorgan',e:'NYSE'},{t:'V',n:'Visa',e:'NYSE'},{t:'SHOP',n:'Shopify',e:'NYSE'},
-    {t:'SPOT',n:'Spotify',e:'NYSE'},{t:'UBER',n:'Uber',e:'NYSE'},{t:'ABNB',n:'Airbnb',e:'NASDAQ'},
-  ],
-  crypto:[
-    {t:'BTC-USD',n:'Bitcoin',e:'Crypto'},{t:'ETH-USD',n:'Ethereum',e:'Crypto'},
-    {t:'XLM-USD',n:'Stellar',e:'Crypto'},{t:'SOL-USD',n:'Solana',e:'Crypto'},
-    {t:'BNB-USD',n:'BNB',e:'Crypto'},{t:'XRP-USD',n:'XRP',e:'Crypto'},
-    {t:'ADA-USD',n:'Cardano',e:'Crypto'},{t:'DOGE-USD',n:'Dogecoin',e:'Crypto'},
-    {t:'AVAX-USD',n:'Avalanche',e:'Crypto'},{t:'LINK-USD',n:'Chainlink',e:'Crypto'},
-  ],
-  emner:[
-    {t:'Federal Reserve',n:'Federal Reserve',e:'Makro'},{t:'ECB',n:'Europæisk Centralbank',e:'Makro'},
-    {t:'Inflation',n:'Inflation & renter',e:'Makro'},{t:'USA-Kina',n:'USA–Kina handel',e:'Geo'},
-    {t:'Ukraine',n:'Ukraine',e:'Geo'},{t:'EU regulering',n:'EU regulering',e:'Geo'},
-  ]
+// ── STATE ─────────────────────────────────────────────────────────
+// lists structure:
+// {
+//   stocks_owned: { name:'Aktier jeg ejer', color:'#6B9FD4', type:'owned', category:'stocks', items:[] },
+//   stocks_watch_ID: { name:'...', color:'...', type:'watch', category:'stocks', items:[] },
+//   crypto_owned: { name:'Krypto jeg ejer', color:'#5BAF84', type:'owned', category:'crypto', items:[] },
+//   crypto_watch_ID: { name:'...', color:'...', type:'watch', category:'crypto', items:[] }
+// }
+// each item: { ticker, name, domain }
+
+let lists = {};
+let chartData = {};
+let newsCache = null;
+let currentList = 'stocks_owned';
+let modalTargetList = null;
+let miniCharts = {};
+let authMode = 'login';
+
+const WATCH_COLORS = ['#9B8FD4','#C4963A','#D4735A','#6B9FD4','#5BAF84','#B88AD4'];
+let colorIdx = 0;
+
+const CAT_SYS = {
+  stocks: 'Du er en erfaren aktieanalytiker. Analyser de seneste nyheder for de angivne aktietickers og vurder investeringsrelevansen præcist.',
+  crypto: 'Du er en erfaren kryptoanalytiker. Analyser de seneste nyheder for de angivne kryptovalutaer og vurder investeringsrelevansen præcist.'
 };
 
-const CAT_SYS={
-  stocks:'Du er en erfaren aktieanalytiker. Analyser de seneste nyheder for de angivne aktietickers og vurder investeringsrelevansen præcist.',
-  crypto:'Du er en erfaren kryptoanalytiker. Analyser de seneste nyheder for de angivne kryptovalutaer og vurder investeringsrelevansen præcist.',
-  emner:'Du er en finansiel analytiker. Analyser de seneste nyheder for de angivne emner og vurder indvirkning på markeder og investorer.'
-};
-
-let sel=new Set();
-let news=null;
-let charts={};
-let range='1W';
-let selTicker=null;
-let bigChart=null;
-let miniCharts={};
-let authMode='login';
-
-// AUTH
-function toggleAuth(){
-  authMode=authMode==='login'?'signup':'login';
-  document.getElementById('loginView').style.display=authMode==='login'?'block':'none';
-  document.getElementById('signupView').style.display=authMode==='signup'?'block':'none';
-  document.getElementById('authToggleTxt').textContent=authMode==='login'?'Ingen konto?':'Har du en konto?';
-  document.getElementById('authToggleLink').textContent=authMode==='login'?'Opret dig her →':'Log ind →';
+// ── AUTH ──────────────────────────────────────────────────────────
+function toggleAuth() {
+  authMode = authMode === 'login' ? 'signup' : 'login';
+  document.getElementById('loginView').style.display = authMode === 'login' ? 'block' : 'none';
+  document.getElementById('signupView').style.display = authMode === 'signup' ? 'block' : 'none';
+  document.getElementById('authToggleTxt').textContent = authMode === 'login' ? 'Ingen konto?' : 'Har du en konto?';
+  document.getElementById('authToggleLink').textContent = authMode === 'login' ? 'Opret dig her →' : 'Log ind →';
 }
-async function doLogin(){
-  const e=document.getElementById('loginEmail').value.trim();
-  const p=document.getElementById('loginPass').value;
-  const err=document.getElementById('loginErr');
-  const btn=document.getElementById('loginBtn');
-  err.style.display='none';btn.disabled=true;btn.textContent='Logger ind...';
-  try{
-    const r=await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:e,password:p}),credentials:'include'});
-    const d=await r.json();
-    if(!r.ok)throw new Error(d.error);
+
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginErr');
+  const btn = document.getElementById('loginBtn');
+  err.style.display = 'none'; btn.disabled = true; btn.textContent = 'Logger ind...';
+  try {
+    const r = await fetch('/api/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email, password:pass}), credentials:'include' });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error);
     startApp(d.user);
-  }catch(ex){err.textContent=ex.message;err.style.display='block';}
-  btn.disabled=false;btn.textContent='Log ind';
+  } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
+  btn.disabled = false; btn.textContent = 'Log ind';
 }
-async function doSignup(){
-  const e=document.getElementById('signupEmail').value.trim();
-  const p=document.getElementById('signupPass').value;
-  const err=document.getElementById('signupErr');
-  const ok=document.getElementById('signupOk');
-  const btn=document.getElementById('signupBtn');
-  err.style.display='none';ok.style.display='none';btn.disabled=true;btn.textContent='Opretter...';
-  try{
-    const r=await fetch('/api/signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email:e,password:p})});
-    const d=await r.json();
-    if(!r.ok)throw new Error(d.error);
-    ok.textContent='✓ Tjek din email for bekræftelse';ok.style.display='block';
-  }catch(ex){err.textContent=ex.message;err.style.display='block';}
-  btn.disabled=false;btn.textContent='Opret konto';
+
+async function doSignup() {
+  const email = document.getElementById('signupEmail').value.trim();
+  const pass = document.getElementById('signupPass').value;
+  const err = document.getElementById('signupErr');
+  const ok = document.getElementById('signupOk');
+  const btn = document.getElementById('signupBtn');
+  err.style.display = 'none'; ok.style.display = 'none'; btn.disabled = true; btn.textContent = 'Opretter...';
+  try {
+    const r = await fetch('/api/signup', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email, password:pass}) });
+    const d = await r.json();
+    if (!r.ok) throw new Error(d.error);
+    ok.textContent = '✓ Tjek din email for bekræftelse'; ok.style.display = 'block';
+  } catch(e) { err.textContent = e.message; err.style.display = 'block'; }
+  btn.disabled = false; btn.textContent = 'Opret konto';
 }
-async function doLogout(){
-  await fetch('/api/logout',{method:'POST',credentials:'include'});
+
+async function doLogout() {
+  await fetch('/api/logout', { method:'POST', credentials:'include' });
   document.getElementById('app').classList.remove('on');
-  document.getElementById('app').style.display='none';
-  document.getElementById('auth').style.display='flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('auth').style.display = 'flex';
 }
-async function checkSession(){
-  try{
-    const r=await fetch('/api/me',{credentials:'include'});
-    if(r.ok){const d=await r.json();startApp(d.user);}
-  }catch(e){}
+
+async function checkSession() {
+  try {
+    const r = await fetch('/api/me', { credentials:'include' });
+    if (r.ok) { const d = await r.json(); startApp(d.user); }
+  } catch(e) {}
 }
-function startApp(user){
-  document.getElementById('auth').style.display='none';
-  const app=document.getElementById('app');
-  app.style.display='flex';
-  const em=user.email||'';
-  document.getElementById('userAvatar').textContent=em[0]?.toUpperCase()||'?';
-  const saved=localStorage.getItem('if3_sel');
-  if(saved)sel=new Set(JSON.parse(saved));
-  const sn=localStorage.getItem('if3_news');
-  if(sn)news=JSON.parse(sn);
-  const sc=localStorage.getItem('if3_charts');
-  if(sc)charts=JSON.parse(sc);
-  renderListe();
+
+function startApp(user) {
+  document.getElementById('auth').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  document.getElementById('app').classList.add('on');
+  const em = user.email || '';
+  document.getElementById('userAvatar').textContent = em[0]?.toUpperCase() || '?';
+
+  const saved = localStorage.getItem('if4_lists');
+  if (saved) {
+    lists = JSON.parse(saved);
+  } else {
+    lists = {
+      stocks_owned: { name:'Aktier jeg ejer', color:'#6B9FD4', type:'owned', category:'stocks', items:[] },
+      crypto_owned: { name:'Krypto jeg ejer', color:'#5BAF84', type:'owned', category:'crypto', items:[] }
+    };
+    saveLists();
+  }
+
+  const savedNews = localStorage.getItem('if4_news');
+  if (savedNews) newsCache = JSON.parse(savedNews);
+  const savedCharts = localStorage.getItem('if4_charts');
+  if (savedCharts) chartData = JSON.parse(savedCharts);
+
   renderStrip();
   renderFeed();
-  renderGrafer();
-  renderPfLists();
+  renderLists();
 }
 
-// PAGES
-function showPage(id){
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
-  document.querySelectorAll('.nlink').forEach(n=>n.classList.remove('on'));
-  document.getElementById('page-'+id).classList.add('on');
-  document.getElementById('nl-'+id).classList.add('on');
+// ── NAVIGATION ────────────────────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('on'));
+  document.querySelectorAll('.nl').forEach(n => n.classList.remove('on'));
+  document.getElementById('page-' + id).classList.add('on');
+  document.getElementById('nl-' + id).classList.add('on');
 }
 
-// MIN LISTE
-function renderListe(filter=''){
-  const secs=[
-    {key:'stocks',label:'Aktier'},
-    {key:'crypto',label:'Krypto'},
-    {key:'emner',label:'Emner & makro'}
-  ];
-  let html='';
-  secs.forEach(s=>{
-    const items=ASSETS[s.key].filter(a=>!filter||a.t.toLowerCase().includes(filter)||a.n.toLowerCase().includes(filter));
-    if(!items.length)return;
-    html+=`<div class="sec-label">${s.label}</div><div class="agrid">`;
-    items.forEach(a=>{
-      const on=sel.has(a.t);
-      const cd=charts[a.t]?.['1D'];
-      const pts=cd?.points||[];
-      const chg=pts.length>1?((pts.at(-1).v-pts[0].v)/pts[0].v*100).toFixed(1):null;
-      const up=chg>0;
-      html+=`<div class="acard${on?' sel':''}" onclick="toggleAsset('${a.t.replace(/'/g,"\\'")}')">
-        <div class="acard-l"><div class="acard-ticker">${a.t.replace('-USD','')}</div><div class="acard-name">${a.n}</div></div>
-        <div class="acard-r">
-          ${chg!==null?`<span class="${up?'chg-u':'chg-d'}">${up?'+':''}${chg}%</span>`:''}
-          <div class="ck"><i class="ti ti-check" aria-hidden="true"></i></div>
-        </div>
-      </div>`;
-    });
-    html+='</div>';
-  });
-  // Custom tickers not in predefined list
-  const customTickers=[...sel].filter(t=>![...ASSETS.stocks,...ASSETS.crypto,...ASSETS.emner].find(a=>a.t===t));
-  if(customTickers.length){
-    html+=`<div class="sec-label">Egne tilføjede</div><div class="agrid">`;
-    customTickers.forEach(t=>{
-      const cd=charts[t]?.['1D'];
-      const pts=cd?.points||[];
-      const chg=pts.length>1?((pts.at(-1).v-pts[0].v)/pts[0].v*100).toFixed(1):null;
-      const up=chg>0;
-      html+=`<div class="acard sel" onclick="toggleAsset('${t.replace(/'/g,"\\'")}')">
-        <div class="acard-l"><div class="acard-ticker">${t.replace('-USD','')}</div><div class="acard-name">Brugerdefineret</div></div>
-        <div class="acard-r">
-          ${chg!==null?`<span class="${up?'chg-u':'chg-d'}">${up?'+':''}${chg}%</span>`:''}
-          <div class="ck"><i class="ti ti-check" aria-hidden="true"></i></div>
-        </div>
-      </div>`;
-    });
-    html+='</div>';
+// ── SAVE ─────────────────────────────────────────────────────────
+function saveLists() { localStorage.setItem('if4_lists', JSON.stringify(lists)); }
+
+// ── STRIP ────────────────────────────────────────────────────────
+function renderStrip() {
+  const allItems = Object.values(lists).flatMap(l => l.items);
+  const unique = [...new Map(allItems.map(i => [i.ticker, i])).values()];
+  const bar = document.getElementById('strip');
+  if (!unique.length) {
+    bar.innerHTML = '<span class="strip-time" style="margin-left:0;color:var(--text4);font-size:12px">Ingen aktiver tilføjet endnu</span>';
+    return;
   }
-  document.getElementById('listeContent').innerHTML=html;
-  renderMyBar();
-}
-
-function toggleAsset(t){
-  if(sel.has(t))sel.delete(t);else sel.add(t);
-  localStorage.setItem('if3_sel',JSON.stringify([...sel]));
-  renderListe(document.getElementById('searchIn').value.toLowerCase());
-  renderStrip();
-  renderPfLists();
-}
-function clearAll(){
-  sel.clear();
-  localStorage.setItem('if3_sel',JSON.stringify([]));
-  renderListe();renderStrip();renderPfLists();
-}
-function renderMyBar(){
-  document.getElementById('mybarTitle').textContent=`Din liste (${sel.size} valgt)`;
-  const chips=document.getElementById('myChips');
-  if(!sel.size){chips.innerHTML='<span class="empty-chips">Ingen valgt endnu — klik på aktiver ovenfor</span>';return;}
-  chips.innerHTML=[...sel].map(t=>`<div class="chip">${t.replace('-USD','')} <span class="chip-x" onclick="toggleAsset('${t.replace(/'/g,"\\'")}')">×</span></div>`).join('');
-}
-
-// SEARCH
-function onSearch(val){
-  const q=val.toLowerCase().trim();
-  renderListe(q);
-  const drop=document.getElementById('acDrop');
-  if(!q){drop.style.display='none';return;}
-  const all=[...ASSETS.stocks,...ASSETS.crypto,...ASSETS.emner];
-  const res=all.filter(a=>a.t.toLowerCase().includes(q)||a.n.toLowerCase().includes(q)).slice(0,6);
-  let dropHtml=res.map(a=>`<div class="ac-item" onclick="pickAc('${a.t.replace(/'/g,"\\'")}')">
-    <div><div class="ac-item-name">${a.n}</div><div class="ac-item-sub">${a.t}</div></div>
-    <span class="ac-item-ex">${a.e}</span>
-  </div>`).join('');
-  const upper=val.trim().toUpperCase();
-  if(upper&&!res.find(a=>a.t===upper)){
-    dropHtml+=`<div class="ac-item" onclick="addCustomTicker()" style="border-top:0.5px solid var(--border)">
-      <div><div class="ac-item-name" style="color:#185fa5">Tilføj "${upper}" direkte</div><div class="ac-item-sub">Ticker fra Yahoo Finance</div></div>
-      <span class="ac-item-ex" style="background:var(--blue-bg);color:var(--blue-text)">Tilføj</span>
-    </div>`;
-  }
-  drop.innerHTML=dropHtml;
-  drop.style.display='block';
-}
-function pickAc(t){
-  if(!sel.has(t))sel.add(t);
-  localStorage.setItem('if3_sel',JSON.stringify([...sel]));
-  document.getElementById('searchIn').value='';
-  document.getElementById('acDrop').style.display='none';
-  renderListe();renderStrip();renderPfLists();
-}
-function addCustomTicker(){
-  const val=document.getElementById('searchIn').value.trim().toUpperCase();
-  if(!val)return;
-  sel.add(val);
-  localStorage.setItem('if3_sel',JSON.stringify([...sel]));
-  document.getElementById('searchIn').value='';
-  document.getElementById('acDrop').style.display='none';
-  renderListe();renderStrip();renderPfLists();
-}
-document.addEventListener('click',e=>{if(!e.target.closest('.searchbar'))document.getElementById('acDrop').style.display='none';});
-
-// STRIP
-function renderStrip(){
-  const bar=document.getElementById('strip');
-  if(!sel.size){bar.innerHTML='<span class="stime" style="margin-left:0">Ingen aktiver valgt endnu</span>';return;}
-  const now=new Date().toLocaleTimeString('da',{hour:'2-digit',minute:'2-digit'});
-  let h=[...sel].map(t=>{
-    const cd=charts[t]?.['1D'];
-    const pts=cd?.points||[];
-    const chg=pts.length>1?((pts.at(-1).v-pts[0].v)/pts[0].v*100).toFixed(1):null;
-    const up=chg>0;
+  const now = new Date().toLocaleTimeString('da', {hour:'2-digit', minute:'2-digit'});
+  let h = unique.map(item => {
+    const cd = chartData[item.ticker]?.['1D'];
+    const pts = cd?.points || [];
+    const chg = pts.length > 1 ? ((pts.at(-1).v - pts[0].v) / pts[0].v * 100).toFixed(1) : null;
+    const up = chg > 0;
     return `<div class="si">
-      <span class="si-t">${t.replace('-USD','')}</span>
-      ${cd?.price?`<span class="si-p">${fmtPrice(cd.price,cd.currency)}</span>`:''}
-      ${chg!==null?`<span class="${up?'si-u':'si-d'}">${up?'+':''}${chg}%</span>`:''}
+      <span class="si-t">${item.ticker.replace('-USD','')}</span>
+      ${cd?.price ? `<span class="si-p">${fmtPrice(cd.price, cd.currency)}</span>` : ''}
+      ${chg !== null ? `<span class="${up ? 'si-u' : 'si-d'}">${up ? '+' : ''}${chg}%</span>` : ''}
     </div><div class="sdiv"></div>`;
   }).join('');
-  h+=`<span class="stime">15 min delay · ${now}</span>`;
-  bar.innerHTML=h;
+  h += `<span class="strip-time">15 min delay · ${now}</span>`;
+  bar.innerHTML = h;
 }
 
-// FEED
-function renderFeed(){
-  const main=document.getElementById('feedMain');
-  if(!news?.length){
-    main.innerHTML=`<div class="empty-feed"><i class="ti ti-news" aria-hidden="true"></i><div class="empty-feed-t">Ingen nyheder endnu</div><div class="empty-feed-s">Tryk "Opdater" for at hente de seneste nyheder</div></div>`;
-    document.getElementById('statGrid').innerHTML=`
+// ── MINE LISTER ───────────────────────────────────────────────────
+function renderLists() {
+  renderListsSb();
+  renderListsMain();
+}
+
+function renderListsSb() {
+  const sb = document.getElementById('listsSb');
+  const stocksOwned = lists.stocks_owned;
+  const cryptoOwned = lists.crypto_owned;
+  const stocksWatch = Object.entries(lists).filter(([k,v]) => v.category === 'stocks' && v.type === 'watch');
+  const cryptoWatch = Object.entries(lists).filter(([k,v]) => v.category === 'crypto' && v.type === 'watch');
+
+  sb.innerHTML = `
+    <div class="lists-sb-group">
+      <div class="lists-sb-group-label">Aktier</div>
+      <div class="lsb-item${currentList === 'stocks_owned' ? ' on' : ''}" onclick="selectList('stocks_owned')">
+        <div class="lsb-dot" style="background:${stocksOwned.color}"></div>
+        <span class="lsb-name">${stocksOwned.name}</span>
+        <span class="lsb-count">${stocksOwned.items.length}</span>
+      </div>
+      <div class="lsb-indent">
+        <div class="lists-sb-group-label" style="margin-top:8px">Overvågning</div>
+        ${stocksWatch.map(([k,v]) => `
+          <div class="lsb-item${currentList === k ? ' on' : ''}" onclick="selectList('${k}')">
+            <div class="lsb-dot" style="background:${v.color}"></div>
+            <span class="lsb-name">${v.name}</span>
+            <span class="lsb-count">${v.items.length}</span>
+          </div>`).join('')}
+        <div class="lsb-add" onclick="newWatchList('stocks')"><i class="ti ti-plus" aria-hidden="true"></i> Ny liste</div>
+      </div>
+    </div>
+    <div class="lists-sb-group">
+      <div class="lists-sb-group-label">Krypto</div>
+      <div class="lsb-item${currentList === 'crypto_owned' ? ' on' : ''}" onclick="selectList('crypto_owned')">
+        <div class="lsb-dot" style="background:${cryptoOwned.color}"></div>
+        <span class="lsb-name">${cryptoOwned.name}</span>
+        <span class="lsb-count">${cryptoOwned.items.length}</span>
+      </div>
+      <div class="lsb-indent">
+        <div class="lists-sb-group-label" style="margin-top:8px">Overvågning</div>
+        ${cryptoWatch.map(([k,v]) => `
+          <div class="lsb-item${currentList === k ? ' on' : ''}" onclick="selectList('${k}')">
+            <div class="lsb-dot" style="background:${v.color}"></div>
+            <span class="lsb-name">${v.name}</span>
+            <span class="lsb-count">${v.items.length}</span>
+          </div>`).join('')}
+        <div class="lsb-add" onclick="newWatchList('crypto')"><i class="ti ti-plus" aria-hidden="true"></i> Ny liste</div>
+      </div>
+    </div>`;
+}
+
+function renderListsMain() {
+  const main = document.getElementById('listsMain');
+  const list = lists[currentList];
+  if (!list) return;
+
+  const isOwned = list.type === 'owned';
+  const isWatch = list.type === 'watch';
+  const showCharts = isOwned;
+
+  const stocks = list.items.filter(i => !i.ticker.includes('-USD'));
+  const crypto = list.items.filter(i => i.ticker.includes('-USD'));
+
+  Object.values(miniCharts).forEach(c => { try { c.destroy() } catch(e) {} });
+  miniCharts = {};
+
+  main.innerHTML = `
+    <div class="lists-main-head">
+      <div class="lm-title-row">
+        <div class="lm-dot" style="background:${list.color}"></div>
+        ${isWatch
+          ? `<input class="rename-input" value="${list.name}" onchange="renameList('${currentList}', this.value)" />`
+          : `<span class="lm-title">${list.name}</span>`}
+      </div>
+      <div class="lm-add-btn" onclick="openModal('${currentList}')">
+        <i class="ti ti-plus" aria-hidden="true"></i>
+        Tilføj ${list.category === 'crypto' ? 'krypto' : 'aktie'}
+      </div>
+    </div>
+    <div class="lm-sub">${list.items.length} ${list.category === 'crypto' ? 'krypto' : 'aktier'}${showCharts ? ' · Grafer viser 1 uge' : ''}</div>
+
+    ${list.items.length === 0 ? `
+      <div class="empty-state">
+        <i class="ti ti-plus-circle" aria-hidden="true"></i>
+        <div class="empty-state-t">Ingen aktiver endnu</div>
+        <div class="empty-state-s">Tryk knappen øverst for at tilføje</div>
+      </div>` : ''}
+
+    ${stocks.length ? `<div class="lm-sec-label">Aktier</div>${stocks.map(item => renderAssetRow(item, showCharts, currentList)).join('')}` : ''}
+    ${crypto.length ? `<div class="lm-sec-label">Krypto</div>${crypto.map(item => renderAssetRow(item, showCharts, currentList)).join('')}` : ''}
+  `;
+
+  // Draw sparklines
+  if (showCharts) {
+    list.items.forEach(item => {
+      const cd = chartData[item.ticker]?.['1W'];
+      if (!cd?.points?.length) return;
+      const canvasId = 'sp-' + item.ticker.replace(/[^a-z0-9]/gi, '_');
+      const ctx = document.getElementById(canvasId)?.getContext('2d');
+      if (!ctx) return;
+      const vals = cd.points.map(p => p.v);
+      const up = vals.at(-1) >= vals[0];
+      const col = up ? '#5BAF84' : '#D4735A';
+      miniCharts[item.ticker] = new Chart(ctx, {
+        type: 'line',
+        data: { labels: vals.map(() => ''), datasets: [{ data: vals, borderColor: col, borderWidth: 1.5, pointRadius: 0, tension: 0.4, fill: true, backgroundColor: up ? 'rgba(91,175,132,.12)' : 'rgba(212,115,90,.12)' }] },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { enabled: false } }, scales: { x: { display: false }, y: { display: false } }, animation: { duration: 300 } }
+      });
+    });
+  }
+}
+
+function renderAssetRow(item, showChart, listKey) {
+  const cd = chartData[item.ticker]?.['1D'];
+  const pts = cd?.points || [];
+  const chg = pts.length > 1 ? ((pts.at(-1).v - pts[0].v) / pts[0].v * 100).toFixed(1) : null;
+  const up = chg > 0;
+  const logoUrl = item.domain ? `https://logo.clearbit.com/${item.domain}` : '';
+  const canvasId = 'sp-' + item.ticker.replace(/[^a-z0-9]/gi, '_');
+  const fb = item.ticker.replace('-USD', '')[0];
+
+  return `<div class="arow${showChart ? '' : ' no-chart'}">
+    <div class="alogo">
+      ${logoUrl
+        ? `<img src="${logoUrl}" alt="${item.name}" onerror="this.parentElement.innerHTML='<span class=\\'alogo-fb\\'>${fb}</span>'">`
+        : `<span class="alogo-fb">${fb}</span>`}
+    </div>
+    <div class="ainfo">
+      <div class="aticker">${item.ticker.replace('-USD', '')}</div>
+      <div class="aname">${item.name}</div>
+    </div>
+    ${showChart ? `<div class="achart-wrap"><canvas id="${canvasId}"></canvas></div>` : ''}
+    <div class="aprice">${cd?.price ? fmtPrice(cd.price, cd.currency) : '—'}</div>
+    <div class="achg ${up ? 'chg-u' : 'chg-d'}">${chg !== null ? `${up ? '+' : ''}${chg}%` : '—'}</div>
+    <div class="arem" onclick="removeItem('${listKey}','${item.ticker}')"><i class="ti ti-x" aria-hidden="true"></i></div>
+  </div>`;
+}
+
+function selectList(key) {
+  currentList = key;
+  renderLists();
+}
+
+function newWatchList(category) {
+  const id = category + '_watch_' + Date.now();
+  const color = WATCH_COLORS[colorIdx % WATCH_COLORS.length];
+  colorIdx++;
+  lists[id] = { name: 'Ny liste', color, type: 'watch', category, items: [] };
+  saveLists();
+  currentList = id;
+  renderLists();
+}
+
+function renameList(key, name) {
+  if (lists[key]) { lists[key].name = name; saveLists(); renderListsSb(); }
+}
+
+function removeItem(listKey, ticker) {
+  if (!lists[listKey]) return;
+  lists[listKey].items = lists[listKey].items.filter(i => i.ticker !== ticker);
+  saveLists();
+  renderLists();
+  renderStrip();
+  renderPfList();
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────
+const KNOWN = [
+  {ticker:'AAPL',name:'Apple',domain:'apple.com',e:'NASDAQ'},
+  {ticker:'MSFT',name:'Microsoft',domain:'microsoft.com',e:'NASDAQ'},
+  {ticker:'NVDA',name:'NVIDIA',domain:'nvidia.com',e:'NASDAQ'},
+  {ticker:'GOOGL',name:'Alphabet',domain:'google.com',e:'NASDAQ'},
+  {ticker:'AMZN',name:'Amazon',domain:'amazon.com',e:'NASDAQ'},
+  {ticker:'META',name:'Meta',domain:'meta.com',e:'NASDAQ'},
+  {ticker:'TSLA',name:'Tesla',domain:'tesla.com',e:'NASDAQ'},
+  {ticker:'BABA',name:'Alibaba',domain:'alibaba.com',e:'NYSE'},
+  {ticker:'DLO',name:'dLocal',domain:'dlocal.com',e:'NASDAQ'},
+  {ticker:'NFLX',name:'Netflix',domain:'netflix.com',e:'NASDAQ'},
+  {ticker:'SPOT',name:'Spotify',domain:'spotify.com',e:'NYSE'},
+  {ticker:'UBER',name:'Uber',domain:'uber.com',e:'NYSE'},
+  {ticker:'SHOP',name:'Shopify',domain:'shopify.com',e:'NYSE'},
+  {ticker:'ABNB',name:'Airbnb',domain:'airbnb.com',e:'NASDAQ'},
+  {ticker:'JPM',name:'JPMorgan',domain:'jpmorganchase.com',e:'NYSE'},
+  {ticker:'V',name:'Visa',domain:'visa.com',e:'NYSE'},
+  {ticker:'AMD',name:'AMD',domain:'amd.com',e:'NASDAQ'},
+  {ticker:'NOVO B',name:'Novo Nordisk',domain:'novonordisk.com',e:'CPH'},
+  {ticker:'MAERSK B',name:'A.P. Møller-Mærsk',domain:'maersk.com',e:'CPH'},
+  {ticker:'DSV',name:'DSV A/S',domain:'dsv.com',e:'CPH'},
+  {ticker:'ORSTED',name:'Ørsted',domain:'orsted.com',e:'CPH'},
+  {ticker:'GMAB',name:'Genmab',domain:'genmab.com',e:'CPH'},
+  {ticker:'COLOB',name:'Coloplast',domain:'coloplast.com',e:'CPH'},
+  {ticker:'BTC-USD',name:'Bitcoin',domain:'bitcoin.org',e:'Crypto'},
+  {ticker:'ETH-USD',name:'Ethereum',domain:'ethereum.org',e:'Crypto'},
+  {ticker:'XLM-USD',name:'Stellar',domain:'stellar.org',e:'Crypto'},
+  {ticker:'SOL-USD',name:'Solana',domain:'solana.com',e:'Crypto'},
+  {ticker:'BNB-USD',name:'BNB',domain:'bnbchain.org',e:'Crypto'},
+  {ticker:'XRP-USD',name:'XRP',domain:'ripple.com',e:'Crypto'},
+  {ticker:'ADA-USD',name:'Cardano',domain:'cardano.org',e:'Crypto'},
+  {ticker:'DOGE-USD',name:'Dogecoin',domain:'dogecoin.com',e:'Crypto'},
+  {ticker:'AVAX-USD',name:'Avalanche',domain:'avax.network',e:'Crypto'},
+  {ticker:'LINK-USD',name:'Chainlink',domain:'chain.link',e:'Crypto'},
+];
+
+function openModal(listKey) {
+  modalTargetList = listKey;
+  const list = lists[listKey];
+  document.getElementById('modalTitle').textContent = `Tilføj ${list?.category === 'crypto' ? 'krypto' : 'aktie'}`;
+  document.getElementById('modalSearch').value = '';
+  document.getElementById('modalResults').innerHTML = '<div class="modal-empty">Skriv for at søge</div>';
+  document.getElementById('modalBackdrop').classList.remove('hidden');
+  setTimeout(() => document.getElementById('modalSearch').focus(), 100);
+}
+
+function closeModal(e) {
+  if (e && e.target !== document.getElementById('modalBackdrop')) return;
+  document.getElementById('modalBackdrop').classList.add('hidden');
+}
+
+function onModalSearch(val) {
+  const q = val.trim().toLowerCase();
+  const res = document.getElementById('modalResults');
+  if (!q) { res.innerHTML = '<div class="modal-empty">Skriv for at søge</div>'; return; }
+
+  const list = lists[modalTargetList];
+  const isCrypto = list?.category === 'crypto';
+
+  const matches = KNOWN.filter(k => {
+    const isCryptoItem = k.e === 'Crypto';
+    if (isCrypto && !isCryptoItem) return false;
+    if (!isCrypto && isCryptoItem) return false;
+    return k.ticker.toLowerCase().includes(q) || k.name.toLowerCase().includes(q);
+  }).slice(0, 8);
+
+  const upper = val.trim().toUpperCase();
+  const hasExact = matches.find(m => m.ticker === upper);
+
+  let html = matches.map(k => {
+    const fb = k.ticker.replace('-USD', '')[0];
+    return `<div class="mresult" onclick="addItem('${k.ticker}','${k.name.replace(/'/g,"\\'")}','${k.domain}')">
+      <div class="mr-logo">
+        ${k.domain
+          ? `<img src="https://logo.clearbit.com/${k.domain}" alt="" onerror="this.parentElement.innerHTML='<span class=\\'mr-logo-fb\\'>${fb}</span>'">`
+          : `<span class="mr-logo-fb">${fb}</span>`}
+      </div>
+      <div>
+        <div class="mr-ticker">${k.ticker.replace('-USD','')}</div>
+        <div class="mr-name">${k.name}</div>
+      </div>
+      <span class="mr-ex">${k.e}</span>
+    </div>`;
+  }).join('');
+
+  if (!hasExact && upper) {
+    html += `<div class="mresult" onclick="addItem('${upper}','${upper}','')">
+      <div class="mr-logo"><span class="mr-logo-fb">${upper[0]}</span></div>
+      <div>
+        <div class="mr-ticker">${upper}</div>
+        <div class="mr-name">Tilføj direkte fra Yahoo Finance</div>
+      </div>
+      <span class="mr-add">Tilføj</span>
+    </div>`;
+  }
+
+  res.innerHTML = html || '<div class="modal-empty">Ingen resultater</div>';
+}
+
+function addItem(ticker, name, domain) {
+  if (!lists[modalTargetList]) return;
+  const exists = lists[modalTargetList].items.find(i => i.ticker === ticker);
+  if (!exists) {
+    lists[modalTargetList].items.push({ ticker, name, domain });
+    saveLists();
+  }
+  document.getElementById('modalBackdrop').classList.add('hidden');
+  renderLists();
+  renderStrip();
+  renderPfList();
+}
+
+// ── FEED ──────────────────────────────────────────────────────────
+function renderFeed() {
+  const main = document.getElementById('feedMain');
+  if (!newsCache?.length) {
+    main.innerHTML = `<div class="empty-feed"><i class="ti ti-news" aria-hidden="true"></i><div class="empty-feed-t">Ingen nyheder endnu</div><div class="empty-feed-s">Tilføj aktiver og tryk Opdater</div></div>`;
+    document.getElementById('statGrid').innerHTML = `
       <div class="stat"><div class="stat-n">—</div><div class="stat-l">Nyheder</div></div>
       <div class="stat"><div class="stat-n sn-r">—</div><div class="stat-l">Høj impact</div></div>
       <div class="stat"><div class="stat-n sn-g">—</div><div class="stat-l">Bullish</div></div>
       <div class="stat"><div class="stat-n sn-r">—</div><div class="stat-l">Bearish</div></div>`;
     return;
   }
-  const sorted=[...news].sort((a,b)=>({HIGH:0,MEDIUM:1,LOW:2}[a.impact]||2)-({HIGH:0,MEDIUM:1,LOW:2}[b.impact]||2));
-  const high=news.filter(a=>a.impact==='HIGH').length;
-  const bull=news.filter(a=>a.sentiment==='bullish').length;
-  const bear=news.filter(a=>a.sentiment==='bearish').length;
-  document.getElementById('statGrid').innerHTML=`
-    <div class="stat"><div class="stat-n">${news.length}</div><div class="stat-l">Nyheder</div></div>
+  const sorted = [...newsCache].sort((a,b) => ({HIGH:0,MEDIUM:1,LOW:2}[a.impact]||2)-({HIGH:0,MEDIUM:1,LOW:2}[b.impact]||2));
+  const high = newsCache.filter(a => a.impact === 'HIGH').length;
+  const bull = newsCache.filter(a => a.sentiment === 'bullish').length;
+  const bear = newsCache.filter(a => a.sentiment === 'bearish').length;
+  document.getElementById('statGrid').innerHTML = `
+    <div class="stat"><div class="stat-n">${newsCache.length}</div><div class="stat-l">Nyheder</div></div>
     <div class="stat"><div class="stat-n sn-r">${high}</div><div class="stat-l">Høj impact</div></div>
     <div class="stat"><div class="stat-n sn-g">${bull}</div><div class="stat-l">Bullish</div></div>
     <div class="stat"><div class="stat-n sn-r">${bear}</div><div class="stat-l">Bearish</div></div>`;
-  const hero=sorted[0];
-  const rest=sorted.slice(1);
-  const tc=t=>{
-    const a=[...ASSETS.stocks,...ASSETS.crypto,...ASSETS.emner].find(x=>x.t===t);
-    if(!a)return'tag-m';
-    return a.e==='Crypto'?'tag-c':a.e==='Makro'||a.e==='Geo'?'tag-g':'tag-s';
+
+  const hero = sorted[0];
+  const rest = sorted.slice(1);
+  const tc = t => {
+    if (!t) return 'tag-m';
+    return t.includes('-USD') ? 'tag-c' : 'tag-s';
   };
-  const sc=s=>s==='bullish'?'bull':s==='bearish'?'bear':'neut';
-  const sl=s=>s==='bullish'?'↑ Bullish':s==='bearish'?'↓ Bearish':'→ Neutral';
-  const bc=i=>i==='HIGH'?'hbadge':i==='MEDIUM'?'hbadge hbadge-m':'hbadge hbadge-l';
-  const bl=i=>i==='HIGH'?'Høj impact':i==='MEDIUM'?'Medium':'Lav';
-  const dc=i=>i==='HIGH'?'dh':i==='MEDIUM'?'dm':'dl';
-  main.innerHTML=`
-    <div class="feed-hdr"><span class="feed-hdr-l">Seneste nyheder</span><span class="feed-hdr-r">${news.length} historier · sorteret efter impact</span></div>
-    <div class="hero"${hero.url?` onclick="window.open('${hero.url}','_blank')" style="cursor:pointer"`:''}>
+  const sc = s => s === 'bullish' ? 'bull' : s === 'bearish' ? 'bear' : 'neut';
+  const sl = s => s === 'bullish' ? '↑ Bullish' : s === 'bearish' ? '↓ Bearish' : '→ Neutral';
+  const bc = i => i === 'HIGH' ? 'hbadge' : i === 'MEDIUM' ? 'hbadge hbadge-m' : 'hbadge hbadge-l';
+  const bl = i => i === 'HIGH' ? 'Høj impact' : i === 'MEDIUM' ? 'Medium' : 'Lav';
+  const dc = i => i === 'HIGH' ? 'dh' : i === 'MEDIUM' ? 'dm' : 'dl';
+
+  main.innerHTML = `
+    <div class="feed-hdr"><span class="feed-hdr-l">Seneste nyheder</span><span class="feed-hdr-r">${newsCache.length} historier · sorteret efter impact</span></div>
+    <div class="hero"${hero.url ? ` onclick="window.open('${hero.url}','_blank')" style="cursor:pointer"` : ''}>
       <div class="${bc(hero.impact)}"><i class="ti ti-flame" aria-hidden="true"></i> ${bl(hero.impact)}</div>
       <div class="hhl">${hero.headline}</div>
       <div class="hbody">${hero.summary}</div>
@@ -685,10 +808,10 @@ function renderFeed(){
         <span class="tag ${tc(hero.ticker)}">${(hero.ticker||'').replace('-USD','')}</span>
         <span class="${sc(hero.sentiment)}">${sl(hero.sentiment)}</span>
         <span class="mtime">${hero.timeAgo} · ${hero.source}</span>
-        ${hero.url?`<span style="font-size:11px;color:var(--blue);display:flex;align-items:center;gap:3px"><i class="ti ti-external-link" style="font-size:12px" aria-hidden="true"></i> Læs artikel</span>`:''}
+        ${hero.url ? `<span class="rdlink"><i class="ti ti-external-link" aria-hidden="true"></i> Læs artikel</span>` : ''}
       </div>
     </div>
-    ${rest.map(a=>`<div class="story"${a.url?` onclick="window.open('${a.url}','_blank')" style="cursor:pointer"`:''}>
+    ${rest.map(a => `<div class="story"${a.url ? ` onclick="window.open('${a.url}','_blank')" style="cursor:pointer"` : ''}>
       <div class="sdot ${dc(a.impact)}"></div>
       <div class="story-body">
         <div class="shl">${a.headline}</div>
@@ -696,168 +819,95 @@ function renderFeed(){
           <span class="tag ${tc(a.ticker)}">${(a.ticker||'').replace('-USD','')}</span>
           <span class="${sc(a.sentiment)}">${sl(a.sentiment)}</span>
           <span class="stime">${a.timeAgo} · ${a.source}</span>
-          ${a.url?`<span style="font-size:11px;color:var(--blue);display:flex;align-items:center;gap:3px"><i class="ti ti-external-link" style="font-size:12px" aria-hidden="true"></i> Læs</span>`:''}
+          ${a.url ? `<span class="rdlink"><i class="ti ti-external-link" aria-hidden="true"></i> Læs</span>` : ''}
         </div>
       </div>
     </div>`).join('')}`;
+
+  renderPfList();
 }
 
-// PF LISTS
-function renderPfLists(){
-  ['pfList1','pfList2'].forEach(id=>{
-    const el=document.getElementById(id);
-    if(!sel.size){el.innerHTML='<span style="font-size:12px;color:var(--text4)">Ingen aktiver valgt</span>';return;}
-    el.innerHTML=[...sel].map(t=>{
-      const cd=charts[t]?.['1D'];
-      const pts=cd?.points||[];
-      const chg=pts.length>1?((pts.at(-1).v-pts[0].v)/pts[0].v*100).toFixed(1):null;
-      const up=chg>0;
-      const name=[...ASSETS.stocks,...ASSETS.crypto,...ASSETS.emner].find(a=>a.t===t)?.n||t;
-      return `<div class="pf-row">
-        <div><div class="pf-t">${t.replace('-USD','')}</div><div class="pf-n">${name}</div></div>
-        <div class="pf-right">
-          <div class="pf-p">${cd?.price?fmtPrice(cd.price,cd.currency):'—'}</div>
-          ${chg!==null?`<div class="pf-c ${up?'bull':'bear'}">${up?'+':''}${chg}%</div>`:''}
-        </div>
-      </div>`;
-    }).join('');
-  });
-}
-
-// GRAFER
-function renderGrafer(){
-  const chartTickers=[...sel].filter(t=>[...ASSETS.stocks,...ASSETS.crypto].find(a=>a.t===t));
-  const main=document.getElementById('gcards');
-  const empty=document.getElementById('graferEmpty');
-  const bigEl=document.getElementById('chartBig');
-  if(!chartTickers.length){main.innerHTML='';bigEl.style.display='none';empty.style.display='flex';return;}
-  const hasData=chartTickers.some(t=>charts[t]?.[range]?.points?.length);
-  if(!hasData){main.innerHTML='';bigEl.style.display='none';empty.style.display='flex';return;}
-  empty.style.display='none';
-  if(!selTicker||!chartTickers.includes(selTicker))selTicker=chartTickers[0];
-  Object.values(miniCharts).forEach(c=>{try{c.destroy()}catch(e){}});
-  miniCharts={};
-  main.innerHTML=chartTickers.map(t=>{
-    const cd=charts[t]?.[range];
-    if(!cd?.points?.length)return`<div class="gcard${t===selTicker?' sel':''}" onclick="pickGCard('${t}')"><div class="gcard-top"><span class="gcard-ticker">${t.replace('-USD','')}</span></div><div style="font-size:11px;color:#bbb;margin-top:8px">Henter...</div></div>`;
-    const pts=cd.points.map(p=>p.v);
-    const up=pts.at(-1)>=pts[0];
-    const chg=((pts.at(-1)-pts[0])/pts[0]*100).toFixed(1);
-    return`<div class="gcard${t===selTicker?' sel':''}" onclick="pickGCard('${t}')">
-      <div class="gcard-top">
-        <span class="gcard-ticker">${t.replace('-USD','')}</span>
-        <span class="gcard-chg ${up?'si-u':'si-d'}">${up?'+':''}${chg}%</span>
+function renderPfList() {
+  const el = document.getElementById('pfList');
+  const allItems = Object.values(lists).flatMap(l => l.items);
+  const unique = [...new Map(allItems.map(i => [i.ticker, i])).values()];
+  if (!unique.length) { el.innerHTML = '<span style="font-size:12px;color:var(--text4)">Ingen aktiver endnu</span>'; return; }
+  el.innerHTML = unique.map(item => {
+    const cd = chartData[item.ticker]?.['1D'];
+    const pts = cd?.points || [];
+    const chg = pts.length > 1 ? ((pts.at(-1).v - pts[0].v) / pts[0].v * 100).toFixed(1) : null;
+    const up = chg > 0;
+    return `<div class="pf-row">
+      <div><div class="pf-t">${item.ticker.replace('-USD','')}</div><div class="pf-n">${item.name}</div></div>
+      <div class="pf-right">
+        <div class="pf-p">${cd?.price ? fmtPrice(cd.price, cd.currency) : '—'}</div>
+        ${chg !== null ? `<div class="pf-c ${up ? 'bull' : 'bear'}">${up ? '+' : ''}${chg}%</div>` : ''}
       </div>
-      <div class="gcard-price">${fmtPrice(cd.price,cd.currency)}</div>
-      <div class="gcard-name">${[...ASSETS.stocks,...ASSETS.crypto].find(a=>a.t===t)?.n||t}</div>
-      <div class="gcard-spark"><canvas id="sp-${t.replace(/[^a-z0-9]/gi,'_')}"></canvas></div>
     </div>`;
   }).join('');
-  chartTickers.forEach(t=>{
-    const cd=charts[t]?.[range];
-    if(!cd?.points?.length)return;
-    const ctx=document.getElementById('sp-'+t.replace(/[^a-z0-9]/gi,'_'))?.getContext('2d');
-    if(!ctx)return;
-    const vals=cd.points.map(p=>p.v);
-    const up=vals.at(-1)>=vals[0];
-    const col=up?'#1D9E75':'#D85A30';
-    miniCharts[t]=new Chart(ctx,{type:'line',data:{labels:vals.map(()=>''),datasets:[{data:vals,borderColor:col,borderWidth:1.5,pointRadius:0,tension:0.35,fill:true,backgroundColor:up?'rgba(29,158,117,.07)':'rgba(216,90,48,.07)'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{display:false},y:{display:false}},animation:{duration:300}}});
-  });
-  bigEl.style.display='block';
-  renderBigChart();
 }
 
-function pickGCard(t){
-  selTicker=t;
-  document.querySelectorAll('.gcard').forEach(c=>c.classList.remove('sel'));
-  document.querySelectorAll('.gcard').forEach(c=>{if(c.onclick?.toString().includes(`'${t}'`))c.classList.add('sel');});
-  renderBigChart();
-}
+// ── REFRESH ───────────────────────────────────────────────────────
+async function refreshAll() {
+  const allItems = Object.values(lists).flatMap(l => l.items);
+  const unique = [...new Map(allItems.map(i => [i.ticker, i])).values()];
+  if (!unique.length) return;
 
-async function setRange(r,el){
-  range=r;
-  document.querySelectorAll('.rtab').forEach(t=>t.classList.remove('on'));
-  el.classList.add('on');
-  const tickers=[...sel].filter(t=>[...ASSETS.stocks,...ASSETS.crypto].find(a=>a.t===t));
-  await Promise.all(tickers.map(t=>fetchChart(t,r)));
-  renderGrafer();
-}
+  const btn = document.getElementById('refreshBtn');
+  const icon = document.getElementById('refreshIcon');
+  btn.disabled = true; icon.classList.add('spin');
 
-function renderBigChart(){
-  if(!selTicker)return;
-  const cd=charts[selTicker]?.[range];
-  if(!cd?.points?.length)return;
-  if(bigChart){try{bigChart.destroy()}catch(e){}}
-  const ctx=document.getElementById('bigCanvas').getContext('2d');
-  const vals=cd.points.map(p=>p.v);
-  const labels=cd.points.map(p=>new Date(p.t).toLocaleDateString('da',{day:'numeric',month:'short'}));
-  const up=vals.at(-1)>=vals[0];
-  const col=up?'#1D9E75':'#D85A30';
-  const chgA=(vals.at(-1)-vals[0]).toFixed(2);
-  const chgP=((vals.at(-1)-vals[0])/vals[0]*100).toFixed(2);
-  document.getElementById('cbName').textContent=`${selTicker.replace('-USD','')} · ${cd.exchange||''}`;
-  document.getElementById('cbPrice').textContent=fmtPrice(cd.price,cd.currency);
-  const ce=document.getElementById('cbChg');
-  ce.textContent=`${up?'+':''}${chgA} (${up?'+':''}${chgP}%)`;
-  ce.className='cb-chg '+(up?'bull':'bear');
-  bigChart=new Chart(ctx,{type:'line',data:{labels,datasets:[{data:vals,borderColor:col,borderWidth:2,pointRadius:0,tension:0.3,fill:true,backgroundColor:up?'rgba(29,158,117,.06)':'rgba(216,90,48,.06)'}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${fmtPrice(c.parsed.y,cd.currency)}`}}},scales:{x:{display:true,grid:{display:false},ticks:{font:{size:10},color:'#bbb',maxTicksLimit:6}},y:{display:true,position:'right',grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{size:10},color:'#bbb',maxTicksLimit:5,callback:v=>fmtPrice(v,cd.currency)}}},animation:{duration:400}}});
-}
+  document.getElementById('feedMain').innerHTML = [1,2,3].map(() => '<div class="skel"></div>').join('');
+  newsCache = [];
 
-// REFRESH
-async function refreshAll(){
-  if(!sel.size)return;
-  const btn=document.getElementById('refreshBtn');
-  const icon=document.getElementById('refreshIcon');
-  btn.disabled=true;icon.classList.add('spin');
-  const chartT=[...sel].filter(t=>[...ASSETS.stocks,...ASSETS.crypto].find(a=>a.t===t));
-  const stockT=[...sel].filter(t=>ASSETS.stocks.find(a=>a.t===t));
-  const cryptoT=[...sel].filter(t=>ASSETS.crypto.find(a=>a.t===t));
-  const topicT=[...sel].filter(t=>ASSETS.emner.find(a=>a.t===t));
-  document.getElementById('feedMain').innerHTML=[1,2,3].map(()=>'<div class="skel"></div>').join('');
-  news=[];
+  const stockTickers = unique.filter(i => !i.ticker.includes('-USD')).map(i => i.ticker);
+  const cryptoTickers = unique.filter(i => i.ticker.includes('-USD')).map(i => i.ticker);
+
   await Promise.all([
-    ...chartT.map(t=>fetchChart(t,range)),
-    fetchNewsGroup(stockT,'stocks'),
-    fetchNewsGroup(cryptoT,'crypto'),
-    fetchNewsGroup(topicT,'emner'),
+    ...unique.map(i => fetchChart(i.ticker, '1D')),
+    ...unique.map(i => fetchChart(i.ticker, '1W')),
+    fetchNewsGroup(stockTickers, 'stocks'),
+    fetchNewsGroup(cryptoTickers, 'crypto'),
   ]);
-  btn.disabled=false;icon.classList.remove('spin');
-  renderStrip();renderFeed();renderGrafer();
-  renderListe(document.getElementById('searchIn').value.toLowerCase());
-  renderPfLists();
+
+  btn.disabled = false; icon.classList.remove('spin');
+  renderStrip();
+  renderFeed();
+  renderListsMain();
 }
 
-async function fetchChart(t,r){
-  try{
-    const res=await fetch(`/api/chart/${encodeURIComponent(t)}?range=${r}`,{credentials:'include'});
-    if(res.status===401){doLogout();return;}
-    const d=await res.json();
-    if(!charts[t])charts[t]={};
-    charts[t][r]=d;
-    localStorage.setItem('if3_charts',JSON.stringify(charts));
-  }catch(e){console.error(e);}
+async function fetchChart(ticker, range) {
+  try {
+    const r = await fetch(`/api/chart/${encodeURIComponent(ticker)}?range=${range}`, { credentials:'include' });
+    if (r.status === 401) { doLogout(); return; }
+    const d = await r.json();
+    if (!chartData[ticker]) chartData[ticker] = {};
+    chartData[ticker][range] = d;
+    localStorage.setItem('if4_charts', JSON.stringify(chartData));
+  } catch(e) { console.error('Chart err', e); }
 }
 
-async function fetchNewsGroup(tickers,cat){
-  if(!tickers.length)return;
-  try{
-    const r=await fetch('/api/news',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',
-      body:JSON.stringify({tickers,category:cat,systemPrompt:CAT_SYS[cat]})});
-    if(r.status===401){doLogout();return;}
-    const d=await r.json();
-    if(d.articles?.length){
-      news=[...(news||[]),...d.articles];
-      localStorage.setItem('if3_news',JSON.stringify(news));
+async function fetchNewsGroup(tickers, cat) {
+  if (!tickers.length) return;
+  try {
+    const r = await fetch('/api/news', { method:'POST', headers:{'Content-Type':'application/json'}, credentials:'include',
+      body: JSON.stringify({ tickers, category:cat, systemPrompt:CAT_SYS[cat] }) });
+    if (r.status === 401) { doLogout(); return; }
+    const d = await r.json();
+    if (d.articles?.length) {
+      newsCache = [...(newsCache || []), ...d.articles];
+      localStorage.setItem('if4_news', JSON.stringify(newsCache));
     }
-  }catch(e){console.error(e);}
+  } catch(e) { console.error('News err', e); }
 }
 
-function fmtPrice(p,currency){
-  if(!p)return'—';
-  const n=+p;
-  if(currency==='USD')return n<1?`$${n.toFixed(4)}`:`$${n.toLocaleString('da',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
-  if(currency==='DKK')return`DKK ${Math.round(n).toLocaleString('da')}`;
-  return`${n.toFixed(2)} ${currency||''}`;
+// ── HELPERS ───────────────────────────────────────────────────────
+function fmtPrice(p, currency) {
+  if (!p) return '—';
+  const n = +p;
+  if (currency === 'USD') return n < 1 ? `$${n.toFixed(4)}` : `$${n.toLocaleString('da', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
+  if (currency === 'DKK') return `DKK ${Math.round(n).toLocaleString('da')}`;
+  return `${n.toFixed(2)} ${currency || ''}`;
 }
 
 checkSession();
