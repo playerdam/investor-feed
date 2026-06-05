@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Investor Feed</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{--bg:#f7f6f3;--white:#ffffff;--border:#eceae5;--border2:#d4d1c9;--text:#1a1a1a;--text2:#666;--text3:#aaa;--text4:#ccc;--green:#2d9e6b;--green-bg:#EAF3DE;--green-text:#3B6D11;--red:#d94f4f;--red-bg:#fdf0f0;--red-text:#c0392b;--amber:#c97c1a;--amber-bg:#fef7ec;--amber-text:#b86d0a;--purple-bg:#EEEDFE;--purple-text:#534AB7;--r:9px;--rlg:12px}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased}
+
+/* ── TRANSITIONS ── */
+.screen{display:none;animation:fadeIn .25s ease}
+.screen.on{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.sub-panel{display:none;animation:fadeIn .2s ease}
+.sub-panel.on{display:block}
+
+/* ── AUTH ── */
+#authScreen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:var(--bg)}
+.lcard{width:380px;background:var(--white);border-radius:16px;border:0.5px solid var(--border);overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.lcard-top{padding:36px 32px 28px}
+.lbrand{display:flex;align-items:center;gap:9px;margin-bottom:32px}
+.lbrand-dot{width:30px;height:30px;background:var(--text);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.lbrand-dot svg{width:14px;height:14px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.lbrand-name{font-size:14px;font-weight:600;letter-spacing:-.02em}
+.lheading{font-size:24px;font-weight:600;letter-spacing:-.04em;color:var(--text);margin-bottom:4px;line-height:1.25}
+.lheading em{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:var(--text3)}
+.lsub{font-size:13px;color:var(--text3);margin-bottom:26px}
+.flabel{font-size:11px;font-weight:500;color:var(--text4);margin-bottom:5px;letter-spacing:.04em}
+.finput{width:100%;background:#f9f8f6;border:1px solid var(--border);border-radius:var(--r);padding:11px 14px;font-size:14px;color:var(--text);font-family:'Inter',sans-serif;outline:none;transition:border-color .15s;margin-bottom:12px}
+.finput:focus{border-color:#999;background:var(--white)}
+.lbtn{width:100%;background:var(--text);color:#fff;border:none;border-radius:var(--r);padding:13px;font-size:14px;font-weight:500;font-family:'Inter',sans-serif;cursor:pointer;margin-top:8px;letter-spacing:-.01em;transition:opacity .15s}
+.lbtn:hover{opacity:.85}
+.lbtn:disabled{opacity:.45;cursor:not-allowed}
+.lcard-foot{padding:16px 32px;background:#f9f8f6;border-top:0.5px solid var(--border);display:flex;align-items:center;justify-content:center;gap:6px}
+.lfoot-txt{font-size:12px;color:var(--text3)}
+.lfoot-link{font-size:12px;color:var(--text);font-weight:500;cursor:pointer}
+.auth-err{background:var(--red-bg);border:0.5px solid rgba(217,79,79,.2);border-radius:var(--r);padding:9px 13px;font-size:12px;color:var(--red);margin-bottom:14px;display:none}
+.auth-ok{background:var(--green-bg);border:0.5px solid rgba(45,158,107,.2);border-radius:var(--r);padding:9px 13px;font-size:12px;color:var(--green);margin-bottom:14px;display:none}
+
+/* ── APP ── */
+#appScreen{display:none}
+.layout{display:flex;height:100vh;overflow:hidden}
+
+/* Sidebar */
+.sidebar{width:220px;min-width:220px;background:var(--white);border-right:0.5px solid var(--border);display:flex;flex-direction:column;overflow-y:auto}
+.sb-top{padding:20px 14px 16px;border-bottom:0.5px solid var(--border);flex-shrink:0}
+.sb-brand{display:flex;align-items:center;gap:9px}
+.sb-dot{width:28px;height:28px;background:var(--text);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-dot svg{width:13px;height:13px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.sb-name{font-size:13px;font-weight:600;letter-spacing:-.02em}
+.sb-tag{font-size:10px;color:var(--text4);margin-top:1px}
+.sb-nav{padding:10px 8px;flex:1}
+.sb-sec{font-size:10px;font-weight:600;letter-spacing:.07em;color:var(--text4);padding:0 8px;margin:14px 0 4px}
+.sb-sec:first-child{margin-top:2px}
+.navitem{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:var(--r);font-size:13px;font-weight:500;color:var(--text3);cursor:pointer;transition:all .15s;position:relative;user-select:none}
+.navitem:hover{background:var(--bg);color:#444}
+.navitem.on{background:#f3f2ef;color:var(--text)}
+.nav-icon{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;transition:transform .2s}
+.navitem:hover .nav-icon{transform:scale(1.08)}
+.ic-b{background:#EAF3DE}.ic-p{background:#EEEDFE}.ic-a{background:#FAEEDA}.ic-g{background:#E1F5EE}
+.nav-pill{margin-left:auto;font-size:10px;font-weight:600;padding:2px 7px;border-radius:999px;background:#f0ede8;color:var(--text3);transition:all .15s}
+.navitem.on .nav-pill{background:var(--text);color:#fff}
+.sb-foot{padding:12px 8px;border-top:0.5px solid var(--border);flex-shrink:0}
+.user-row{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--r);background:var(--bg)}
+.u-avatar{width:28px;height:28px;border-radius:50%;background:var(--text);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;color:#fff;flex-shrink:0}
+.u-email{font-size:11px;color:var(--text3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.u-out{font-size:16px;color:var(--text4);cursor:pointer;line-height:1;padding:2px;transition:color .15s;background:none;border:none}
+.u-out:hover{color:var(--red)}
+
+/* Main */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.topbar{padding:16px 24px;background:var(--white);border-bottom:0.5px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-shrink:0}
+.tb-title{font-size:18px;font-weight:600;letter-spacing:-.04em}
+.tb-title em{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:var(--text3)}
+.tb-sub{font-size:11px;color:var(--text4);margin-top:2px}
+.tb-btn{display:flex;align-items:center;gap:7px;padding:9px 18px;background:var(--text);color:#fff;border:none;border-radius:var(--r);font-size:13px;font-weight:500;font-family:'Inter',sans-serif;cursor:pointer;letter-spacing:-.01em;transition:opacity .15s;white-space:nowrap}
+.tb-btn:hover{opacity:.85}
+.tb-btn:disabled{opacity:.45;cursor:not-allowed}
+.tb-btn svg{width:13px;height:13px;stroke:#fff;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.spin{animation:spin .9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* Subtabs */
+.subtabs{display:flex;padding:0 24px;background:var(--white);border-bottom:0.5px solid var(--border);flex-shrink:0;gap:0}
+.stab{padding:11px 16px;font-size:13px;font-weight:500;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s;letter-spacing:-.01em}
+.stab:hover{color:var(--text2)}
+.stab.on{color:var(--text);border-bottom-color:var(--text)}
+
+/* Content */
+.content{flex:1;overflow-y:auto;padding:20px 24px}
+
+/* Watchlist */
+.wl{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px;align-items:center}
+.wchip{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;background:var(--white);border:0.5px solid var(--border);border-radius:999px;font-size:12px;font-weight:500;color:#444;transition:border-color .15s}
+.wchip:hover{border-color:var(--border2)}
+.wcx{font-size:11px;color:var(--text4);cursor:pointer;line-height:1;transition:color .15s}
+.wcx:hover{color:var(--red)}
+.wadd-btn{padding:5px 12px;background:transparent;border:0.5px dashed var(--border2);border-radius:999px;font-size:12px;color:var(--text4);cursor:pointer;transition:all .15s;font-family:'Inter',sans-serif}
+.wadd-btn:hover{color:var(--text3);border-color:#aaa}
+.add-inline{display:none;align-items:center;gap:7px}
+.add-inline.on{display:inline-flex}
+.ticker-in{background:var(--white);border:1px solid var(--border2);border-radius:var(--r);padding:5px 10px;font-size:12px;font-family:'Inter',sans-serif;color:var(--text);outline:none;width:130px;transition:border-color .15s}
+.ticker-in:focus{border-color:#888}
+.bsm{padding:5px 11px;border-radius:var(--r);font-size:12px;cursor:pointer;border:none;font-family:'Inter',sans-serif;font-weight:500;transition:opacity .15s}
+.bsm:hover{opacity:.8}
+.bsm-ok{background:var(--text);color:#fff}
+.bsm-no{background:#f0ede8;color:var(--text3)}
+
+/* ── CHARTS ── */
+.asset-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:16px}
+.acard{background:var(--white);border:0.5px solid var(--border);border-radius:var(--rlg);padding:14px;cursor:pointer;transition:all .15s}
+.acard:hover{border-color:var(--border2)}
+.acard.active{border:1.5px solid var(--text)}
+.acard-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px}
+.acard-ticker{font-size:11px;font-weight:600;color:var(--text3);letter-spacing:.04em}
+.acard-chg{font-size:11px;font-weight:600;padding:2px 7px;border-radius:6px}
+.chg-up{background:var(--green-bg);color:var(--green-text)}
+.chg-dn{background:var(--red-bg);color:var(--red-text)}
+.acard-price{font-size:20px;font-weight:600;letter-spacing:-.04em;color:var(--text);line-height:1.2;margin-bottom:2px}
+.acard-name{font-size:11px;color:var(--text4);margin-bottom:10px}
+.acard-spark{height:48px}
+.acard-loading{height:48px;display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--text4)}
+.acard-err{height:48px;display:flex;align-items:center;font-size:11px;color:var(--red)}
+
+.chart-big{background:var(--white);border:0.5px solid var(--border);border-radius:var(--rlg);padding:18px;margin-bottom:16px}
+.cb-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.cb-info-name{font-size:13px;font-weight:500;color:var(--text3);margin-bottom:4px}
+.cb-price-row{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.cb-price{font-size:28px;font-weight:600;letter-spacing:-.05em}
+.cb-chg{font-size:13px;font-weight:500}
+.range-tabs{display:flex;gap:3px;flex-shrink:0}
+.rtab{padding:6px 11px;font-size:12px;font-weight:500;color:var(--text3);border-radius:7px;cursor:pointer;transition:all .15s;border:none;background:transparent;font-family:'Inter',sans-serif}
+.rtab:hover{background:#f3f2ef;color:var(--text2)}
+.rtab.on{background:var(--text);color:#fff}
+.cb-chart{height:180px;position:relative}
+.chart-msg{display:flex;align-items:center;justify-content:center;height:100%;font-size:13px;color:var(--text4)}
+
+/* ── NEWS ── */
+.stats-row{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap}
+.stat-pill{padding:10px 14px;background:var(--white);border:0.5px solid var(--border);border-radius:10px;display:flex;flex-direction:column;gap:2px}
+.stat-n{font-size:18px;font-weight:600;letter-spacing:-.04em}
+.stat-l{font-size:10px;font-weight:500;color:var(--text4);letter-spacing:.03em}
+.sn-r{color:var(--red)}.sn-a{color:var(--amber)}.sn-g{color:var(--green)}
+
+.ncards{display:flex;flex-direction:column;gap:8px}
+.nc{background:var(--white);border:0.5px solid var(--border);border-radius:var(--rlg);padding:14px 16px;transition:border-color .15s}
+.nc:hover{border-color:var(--border2)}
+.nc-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:7px}
+.nbadge{flex-shrink:0;padding:3px 8px;border-radius:6px;font-size:10px;font-weight:600;letter-spacing:.04em;margin-top:1px}
+.nbh{background:var(--red-bg);color:var(--red-text)}
+.nbm{background:var(--amber-bg);color:var(--amber-text)}
+.nbl{background:#f7f6f3;color:var(--text4)}
+.nhead{font-size:13px;font-weight:500;color:var(--text);line-height:1.45;flex:1;letter-spacing:-.01em}
+.nsum{font-size:12px;color:var(--text3);line-height:1.65;margin-bottom:10px}
+.ndiv{height:0.5px;background:#f0ede8;margin:10px 0}
+.nfoot{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.ntag{font-size:10px;font-weight:600;padding:2px 7px;border-radius:5px;letter-spacing:.02em}
+.nt-s{background:var(--green-bg);color:var(--green-text)}
+.nt-c{background:var(--purple-bg);color:var(--purple-text)}
+.nt-g{background:var(--amber-bg);color:var(--amber-text)}
+.nt-m{background:#E1F5EE;color:#085041}
+.nsent{font-size:11px;font-weight:500}
+.nbull{color:var(--green)}.nbear{color:var(--red)}.nneut{color:var(--text4)}
+.nmeta{font-size:11px;color:var(--text4);margin-left:auto}
+
+/* Empty / loading */
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:56px 0;color:var(--text4);gap:8px;text-align:center}
+.empty-icon{font-size:32px;opacity:.3}
+.empty-lbl{font-size:13px;color:var(--text3)}
+.empty-hint{font-size:11px;color:var(--text4)}
+.skel{background:var(--white);border:0.5px solid var(--border);border-radius:var(--rlg);padding:16px;animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.sk{background:#f0ede8;border-radius:3px}
+.sk1{height:13px;width:65%;margin-bottom:8px}
+.sk2{height:11px;width:100%;margin-bottom:5px}
+.sk3{height:11px;width:50%}
+.warn{background:#fef7ec;border:0.5px solid rgba(201,124,26,.2);border-radius:var(--r);padding:10px 14px;font-size:12px;color:var(--amber);margin-bottom:14px;display:none}
+</style>
+</head>
+<body>
+
+<!-- ── AUTH ── -->
+<div id="authScreen">
+  <div class="lcard">
+    <div class="lcard-top">
+      <div class="lbrand">
+        <div class="lbrand-dot"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></div>
+        <div class="lbrand-name">Investor Feed</div>
+      </div>
+
+      <div id="loginView">
+        <div class="lheading">Godmorgen,<br><em>investor.</em></div>
+        <div class="lsub">Log ind for at se dit nyhedsoverblik</div>
+        <div class="auth-err" id="loginErr"></div>
+        <div class="flabel">EMAIL</div>
+        <input type="email" class="finput" id="loginEmail" placeholder="din@email.dk">
+        <div class="flabel">ADGANGSKODE</div>
+        <input type="password" class="finput" id="loginPass" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+        <button class="lbtn" id="loginBtn" onclick="doLogin()">Log ind</button>
+      </div>
+
+      <div id="signupView" style="display:none">
+        <div class="lheading">Opret<br><em>konto.</em></div>
+        <div class="lsub">Få adgang til Investor Feed</div>
+        <div class="auth-err" id="signupErr"></div>
+        <div class="auth-ok" id="signupOk"></div>
+        <div class="flabel">EMAIL</div>
+        <input type="email" class="finput" id="signupEmail" placeholder="din@email.dk">
+        <div class="flabel">ADGANGSKODE</div>
+        <input type="password" class="finput" id="signupPass" placeholder="Min. 6 tegn" onkeydown="if(event.key==='Enter')doSignup()">
+        <button class="lbtn" id="signupBtn" onclick="doSignup()">Opret konto</button>
+      </div>
+    </div>
+
+    <div class="lcard-foot">
+      <span class="lfoot-txt" id="authToggleTxt">Ingen konto?</span>
+      <a class="lfoot-link" id="authToggleLink" onclick="toggleAuth()">Opret dig her →</a>
+    </div>
+  </div>
+</div>
+
+<!-- ── APP ── -->
+<div id="appScreen">
+  <div class="layout">
+
+    <aside class="sidebar">
+      <div class="sb-top">
+        <div class="sb-brand">
+          <div class="sb-dot"><svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></div>
+          <div><div class="sb-name">Investor Feed</div><div class="sb-tag">AI-drevet overblik</div></div>
+        </div>
+      </div>
+
+      <div class="sb-nav">
+        <div class="sb-sec">MARKEDER</div>
+        <div class="navitem on" data-cat="stocks" onclick="switchCat('stocks',this)">
+          <div class="nav-icon ic-b">📈</div>Aktier<span class="nav-pill" id="pill-stocks"></span>
+        </div>
+        <div class="navitem" data-cat="crypto" onclick="switchCat('crypto',this)">
+          <div class="nav-icon ic-p">₿</div>Krypto<span class="nav-pill" id="pill-crypto"></span>
+        </div>
+        <div class="sb-sec">KONTEKST</div>
+        <div class="navitem" data-cat="geo" onclick="switchCat('geo',this)">
+          <div class="nav-icon ic-a">🌍</div>Geopolitik<span class="nav-pill" id="pill-geo"></span>
+        </div>
+        <div class="navitem" data-cat="macro" onclick="switchCat('macro',this)">
+          <div class="nav-icon ic-g">📊</div>Makroøkonomi<span class="nav-pill" id="pill-macro"></span>
+        </div>
+      </div>
+
+      <div class="sb-foot">
+        <div class="user-row">
+          <div class="u-avatar" id="userAvatar">?</div>
+          <div class="u-email" id="userEmail">—</div>
+          <button class="u-out" onclick="doLogout()" title="Log ud">✕</button>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <div class="tb-title" id="tbTitle">Aktier <em>· i dag</em></div>
+          <div class="tb-sub" id="tbSub">vælg tickers og hent data</div>
+        </div>
+        <button class="tb-btn" id="fetchBtn" onclick="fetchAll()">
+          <svg id="fetchIcon" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          Opdater feed
+        </button>
+      </div>
+
+      <div class="subtabs">
+        <div class="stab on" onclick="showSub('grafer',this)">Grafer</div>
+        <div class="stab" onclick="showSub('nyheder',this)">Nyheder</div>
+      </div>
+
+      <div class="content">
+        <div class="warn" id="warnBar">Ingen kategori valgt endnu</div>
+
+        <!-- GRAFER -->
+        <div class="sub-panel on" id="sub-grafer">
+          <div class="wl" id="chartWl"></div>
+          <div class="asset-grid" id="assetGrid"></div>
+          <div class="chart-big" id="chartBig" style="display:none">
+            <div class="cb-top">
+              <div>
+                <div class="cb-info-name" id="cbName">—</div>
+                <div class="cb-price-row">
+                  <div class="cb-price" id="cbPrice">—</div>
+                  <div class="cb-chg" id="cbChg"></div>
+                </div>
+              </div>
+              <div class="range-tabs">
+                <button class="rtab" onclick="setRange('1D',this)">1D</button>
+                <button class="rtab on" onclick="setRange('1W',this)">1W</button>
+                <button class="rtab" onclick="setRange('1M',this)">1M</button>
+                <button class="rtab" onclick="setRange('3M',this)">3M</button>
+                <button class="rtab" onclick="setRange('1Y',this)">1Y</button>
+              </div>
+            </div>
+            <div class="cb-chart"><canvas id="bigChartCanvas"></canvas></div>
+          </div>
+          <div class="empty" id="chartEmpty">
+            <div class="empty-icon">◎</div>
+            <div class="empty-lbl">Ingen kursdata endnu</div>
+            <div class="empty-hint">Tryk "Opdater feed" for at hente grafer</div>
+          </div>
+        </div>
+
+        <!-- NYHEDER -->
+        <div class="sub-panel" id="sub-nyheder">
+          <div class="wl" id="newsWl"></div>
+          <div class="stats-row" id="statsRow" style="display:none"></div>
+          <div id="newsGrid">
+            <div class="empty">
+              <div class="empty-icon">◎</div>
+              <div class="empty-lbl">Ingen nyheder endnu</div>
+              <div class="empty-hint">Tryk "Opdater feed" for at hente nyheder</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<script>
+const CATS = {
+  stocks:{ label:'Aktier', hint:'aktier · DLO · BABA · NOVO B', tagClass:'nt-s', hasCharts:true, default:['DLO','BABA','NOVO B'],
+    sys:'Du er en erfaren aktieanalytiker. Søg efter de seneste nyheder (max 7 dage) for de angivne aktietickers. Vurder investeringsrelevansen præcist.' },
+  crypto:{ label:'Krypto', hint:'krypto · XLM · BTC · ETH', tagClass:'nt-c', hasCharts:true, default:['XLM-USD','BTC-USD','ETH-USD'],
+    sys:'Du er en erfaren kryptoanalytiker. Søg efter de seneste nyheder (max 7 dage) for de angivne kryptovalutaer.' },
+  geo:{ label:'Geopolitik', hint:'geopolitiske emner', tagClass:'nt-g', hasCharts:false, default:['USA-Kina','Ukraine','EU regulering'],
+    sys:'Du er en geopolitisk analytiker med fokus på finansielle markeder. Søg efter de seneste nyheder (max 7 dage) og vurder indvirkning på markeder.' },
+  macro:{ label:'Makroøkonomi', hint:'makroøkonomiske emner', tagClass:'nt-m', hasCharts:false, default:['Federal Reserve','Inflation','ECB'],
+    sys:'Du er en makroøkonomisk analytiker. Søg efter de seneste nyheder (max 7 dage) og vurder investeringsrelevans.' }
+};
+
+let currentCat = 'stocks';
+let currentRange = '1W';
+let watchlists = {};
+let newsCache = {};
+let chartDataCache = {};
+let addOpen = {};
+let bigChart = null;
+let selectedTicker = null;
+let miniCharts = {};
+let fetching = false;
+let authMode = 'login';
+
+// ── AUTH ─────────────────────────────────────────────────────────
+function toggleAuth(){
+  authMode = authMode === 'login' ? 'signup' : 'login';
+  document.getElementById('loginView').style.display = authMode==='login'?'block':'none';
+  document.getElementById('signupView').style.display = authMode==='signup'?'block':'none';
+  document.getElementById('authToggleTxt').textContent = authMode==='login'?'Ingen konto?':'Har du en konto?';
+  document.getElementById('authToggleLink').textContent = authMode==='login'?'Opret dig her →':'Log ind →';
+}
+
+async function doLogin(){
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass = document.getElementById('loginPass').value;
+  const err = document.getElementById('loginErr');
+  const btn = document.getElementById('loginBtn');
+  err.style.display='none'; btn.disabled=true; btn.textContent='Logger ind...';
+  try{
+    const r = await fetch('/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass}),credentials:'include'});
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.error);
+    startApp(d.user);
+  }catch(e){ err.textContent=e.message; err.style.display='block'; }
+  btn.disabled=false; btn.textContent='Log ind';
+}
+
+async function doSignup(){
+  const email = document.getElementById('signupEmail').value.trim();
+  const pass = document.getElementById('signupPass').value;
+  const err = document.getElementById('signupErr');
+  const ok = document.getElementById('signupOk');
+  const btn = document.getElementById('signupBtn');
+  err.style.display='none'; ok.style.display='none'; btn.disabled=true; btn.textContent='Opretter...';
+  try{
+    const r = await fetch('/api/signup',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password:pass})});
+    const d = await r.json();
+    if(!r.ok) throw new Error(d.error);
+    ok.textContent='✓ Tjek din email for bekræftelse'; ok.style.display='block';
+  }catch(e){ err.textContent=e.message; err.style.display='block'; }
+  btn.disabled=false; btn.textContent='Opret konto';
+}
+
+async function doLogout(){
+  await fetch('/api/logout',{method:'POST',credentials:'include'});
+  document.getElementById('appScreen').style.display='none';
+  document.getElementById('authScreen').style.display='flex';
+}
+
+async function checkSession(){
+  try{
+    const r = await fetch('/api/me',{credentials:'include'});
+    if(r.ok){ const d=await r.json(); startApp(d.user); }
+  }catch(e){}
+}
+
+function startApp(user){
+  document.getElementById('authScreen').style.display='none';
+  document.getElementById('appScreen').style.display='block';
+  document.getElementById('userEmail').textContent = user.email||'';
+  document.getElementById('userAvatar').textContent = (user.email||'?')[0].toUpperCase();
+  const saved = localStorage.getItem('if_watchlists');
+  watchlists = saved ? JSON.parse(saved) : Object.fromEntries(Object.keys(CATS).map(c=>[c,[...CATS[c].default]]));
+  const savedNews = localStorage.getItem('if_news');
+  newsCache = savedNews ? JSON.parse(savedNews) : {};
+  const savedCharts = localStorage.getItem('if_charts');
+  chartDataCache = savedCharts ? JSON.parse(savedCharts) : {};
+  renderAll();
+}
+
+// ── NAV ──────────────────────────────────────────────────────────
+function switchCat(cat, btn){
+  currentCat = cat;
+  document.querySelectorAll('.navitem').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  selectedTicker = null;
+  renderAll();
+}
+
+function showSub(id, el){
+  document.querySelectorAll('.sub-panel').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.stab').forEach(t=>t.classList.remove('on'));
+  document.getElementById('sub-'+id).classList.add('on');
+  el.classList.add('on');
+}
+
+function renderAll(){
+  const cat = CATS[currentCat];
+  const now = new Date().toLocaleTimeString('da',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('tbTitle').innerHTML = `${cat.label} <em>· i dag</em>`;
+  document.getElementById('tbSub').textContent = `${cat.hint} · ${now}`;
+  renderWatchlist('chartWl');
+  renderWatchlist('newsWl');
+  updateNavPills();
+  if(cat.hasCharts) renderChartsPanel();
+  else renderNoCharts();
+  renderNewsPanel();
+}
+
+function updateNavPills(){
+  Object.keys(CATS).forEach(c=>{
+    const n = newsCache[c]?.length || 0;
+    const el = document.getElementById('pill-'+c);
+    el.textContent = n || '';
+    el.style.display = n ? 'inline' : 'none';
+  });
+}
+
+// ── WATCHLIST ─────────────────────────────────────────────────────
+function renderWatchlist(containerId){
+  const tickers = watchlists[currentCat]||[];
+  const bar = document.getElementById(containerId);
+  let h = tickers.map(t=>`<div class="wchip">${t}<span class="wcx" onclick="removeTicker('${containerId}','${t.replace(/'/g,"\\'")}')">×</span></div>`).join('');
+  const addId = containerId+'-add';
+  if(!addOpen[containerId]){
+    h += `<button class="wadd-btn" onclick="openAdd('${containerId}')">+ tilføj</button>`;
+  } else {
+    h += `<div class="add-inline on" id="${addId}">
+      <input type="text" class="ticker-in" id="${addId}-input" placeholder="Ticker / emne" onkeydown="if(event.key==='Enter')confirmAdd('${containerId}')"/>
+      <button class="bsm bsm-ok" onclick="confirmAdd('${containerId}')">Tilføj</button>
+      <button class="bsm bsm-no" onclick="closeAdd('${containerId}')">✕</button>
+    </div>`;
+  }
+  bar.innerHTML = h;
+  if(addOpen[containerId]) setTimeout(()=>document.getElementById(addId+'-input')?.focus(),40);
+}
+
+function openAdd(id){ addOpen[id]=true; renderWatchlist(id); }
+function closeAdd(id){ addOpen[id]=false; renderWatchlist(id); }
+function removeTicker(containerId, t){
+  watchlists[currentCat]=(watchlists[currentCat]||[]).filter(x=>x!==t);
+  localStorage.setItem('if_watchlists',JSON.stringify(watchlists));
+  delete chartDataCache[t];
+  renderWatchlist(containerId);
+  if(containerId==='chartWl') renderChartsPanel();
+}
+function confirmAdd(containerId){
+  const el = document.getElementById(containerId+'-add-input');
+  const val = el?.value?.trim().toUpperCase();
+  if(!val){closeAdd(containerId);return;}
+  if(!watchlists[currentCat].includes(val)) watchlists[currentCat].push(val);
+  localStorage.setItem('if_watchlists',JSON.stringify(watchlists));
+  closeAdd(containerId);
+  renderWatchlist(containerId==='chartWl'?'newsWl':'chartWl');
+  if(containerId==='chartWl') renderChartsPanel();
+}
+
+// ── FETCH ALL ─────────────────────────────────────────────────────
+async function fetchAll(){
+  if(fetching) return;
+  fetching = true;
+  const btn = document.getElementById('fetchBtn');
+  const icon = document.getElementById('fetchIcon');
+  btn.disabled = true;
+  icon.classList.add('spin');
+  const cat = CATS[currentCat];
+  const tickers = watchlists[currentCat]||[];
+  const promises = [];
+  if(cat.hasCharts && tickers.length) promises.push(fetchAllCharts(tickers));
+  if(tickers.length) promises.push(fetchNews(tickers));
+  await Promise.all(promises);
+  fetching = false;
+  btn.disabled = false;
+  icon.classList.remove('spin');
+  renderAll();
+  const now = new Date().toLocaleTimeString('da',{hour:'2-digit',minute:'2-digit'});
+  document.getElementById('tbSub').textContent = `${cat.hint} · opdateret ${now}`;
+}
+
+// ── CHARTS ───────────────────────────────────────────────────────
+async function fetchAllCharts(tickers){
+  await Promise.all(tickers.map(t => fetchChartData(t, currentRange)));
+}
+
+async function fetchChartData(ticker, range){
+  try{
+    const r = await fetch(`/api/chart/${encodeURIComponent(ticker)}?range=${range}`,{credentials:'include'});
+    if(r.status===401){doLogout();return;}
+    const d = await r.json();
+    if(!chartDataCache[ticker]) chartDataCache[ticker]={};
+    chartDataCache[ticker][range] = d;
+    localStorage.setItem('if_charts',JSON.stringify(chartDataCache));
+  }catch(e){ console.error('Chart fetch err',e); }
+}
+
+function renderNoCharts(){
+  document.getElementById('assetGrid').innerHTML='';
+  document.getElementById('chartBig').style.display='none';
+  document.getElementById('chartEmpty').innerHTML=`<div class="empty"><div class="empty-icon">◎</div><div class="empty-lbl">Grafer ikke tilgængeligt for denne kategori</div><div class="empty-hint">Vælg Aktier eller Krypto for kursgraferne</div></div>`;
+  document.getElementById('chartEmpty').style.display='flex';
+}
+
+function renderChartsPanel(){
+  const tickers = watchlists[currentCat]||[];
+  const grid = document.getElementById('assetGrid');
+  const bigEl = document.getElementById('chartBig');
+  const emptyEl = document.getElementById('chartEmpty');
+
+  if(!tickers.length){
+    grid.innerHTML=''; bigEl.style.display='none';
+    emptyEl.innerHTML=`<div class="empty"><div class="empty-icon">◎</div><div class="empty-lbl">Ingen tickers tilføjet</div></div>`;
+    emptyEl.style.display='flex'; return;
+  }
+
+  const hasAny = tickers.some(t=>chartDataCache[t]?.[currentRange]);
+  if(!hasAny){
+    grid.innerHTML=''; bigEl.style.display='none';
+    emptyEl.innerHTML=`<div class="empty"><div class="empty-icon">◎</div><div class="empty-lbl">Ingen kursdata endnu</div><div class="empty-hint">Tryk "Opdater feed" for at hente grafer</div></div>`;
+    emptyEl.style.display='flex'; return;
+  }
+
+  emptyEl.style.display='none';
+  Object.values(miniCharts).forEach(c=>{try{c.destroy()}catch(e){}});
+  miniCharts={};
+
+  if(!selectedTicker || !tickers.includes(selectedTicker)) selectedTicker = tickers[0];
+
+  grid.innerHTML = tickers.map(t=>{
+    const d = chartDataCache[t]?.[currentRange];
+    if(!d) return `<div class="acard" onclick="selectTicker('${t}',this)"><div class="acard-top"><span class="acard-ticker">${t}</span></div><div class="acard-loading">Henter...</div></div>`;
+    const pts = d.points||[];
+    const first = pts[0]?.v, last = pts[pts.length-1]?.v;
+    const chgPct = first && last ? (((last-first)/first)*100).toFixed(2) : null;
+    const up = chgPct >= 0;
+    const price = d.price ? formatPrice(d.price, d.currency) : '—';
+    return `<div class="acard${t===selectedTicker?' active':''}" onclick="selectTicker('${t}',this)">
+      <div class="acard-top">
+        <span class="acard-ticker">${t}</span>
+        ${chgPct!==null?`<span class="acard-chg ${up?'chg-up':'chg-dn'}">${up?'+':''}${chgPct}%</span>`:''}
+      </div>
+      <div class="acard-price">${price}</div>
+      <div class="acard-name">${d.exchange||''}</div>
+      <div class="acard-spark"><canvas id="spark-${t.replace(/[^a-z0-9]/gi,'_')}"></canvas></div>
+    </div>`;
+  }).join('');
+
+  tickers.forEach(t=>{
+    const d = chartDataCache[t]?.[currentRange];
+    if(!d?.points?.length) return;
+    const canvasId = 'spark-'+t.replace(/[^a-z0-9]/gi,'_');
+    const ctx = document.getElementById(canvasId)?.getContext('2d');
+    if(!ctx) return;
+    const vals = d.points.map(p=>p.v);
+    const first = vals[0], last = vals[vals.length-1];
+    const up = last >= first;
+    const col = up ? '#2d9e6b' : '#d94f4f';
+    miniCharts[t] = new Chart(ctx,{type:'line',data:{labels:vals.map(()=>''),datasets:[{data:vals,borderColor:col,borderWidth:1.5,pointRadius:0,tension:0.4,fill:true,backgroundColor:up?'rgba(45,158,107,0.07)':'rgba(217,79,79,0.07)'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{x:{display:false},y:{display:false}},animation:{duration:300}}});
+  });
+
+  renderBigChart();
+  bigEl.style.display='block';
+}
+
+function selectTicker(t, el){
+  selectedTicker = t;
+  document.querySelectorAll('.acard').forEach(c=>c.classList.remove('active'));
+  el.classList.add('active');
+  renderBigChart();
+}
+
+async function setRange(r, el){
+  currentRange = r;
+  document.querySelectorAll('.rtab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  const tickers = watchlists[currentCat]||[];
+  await fetchAllCharts(tickers);
+  renderChartsPanel();
+}
+
+function formatPrice(p, currency){
+  if(!p) return '—';
+  const n = +p;
+  return currency==='USD'?`$${n.toFixed(n<10?4:2)}`:currency==='DKK'?`DKK ${n.toFixed(0)}`:`${n.toFixed(2)} ${currency||''}`;
+}
+
+function renderBigChart(){
+  if(!selectedTicker) return;
+  const d = chartDataCache[selectedTicker]?.[currentRange];
+  const canvas = document.getElementById('bigChartCanvas');
+  if(!canvas) return;
+  if(!d?.points?.length){
+    canvas.parentElement.innerHTML='<div class="chart-msg">Ingen data tilgængeligt</div>';
+    return;
+  }
+  if(bigChart){ try{bigChart.destroy()}catch(e){} bigChart=null; }
+  if(!document.getElementById('bigChartCanvas')){
+    canvas.parentElement.innerHTML='<canvas id="bigChartCanvas"></canvas>';
+  }
+  const ctx = document.getElementById('bigChartCanvas').getContext('2d');
+  const vals = d.points.map(p=>p.v);
+  const labels = d.points.map(p=>new Date(p.t).toLocaleDateString('da',{day:'numeric',month:'short'}));
+  const first = vals[0], last = vals[vals.length-1];
+  const up = last >= first;
+  const col = up ? '#2d9e6b' : '#d94f4f';
+  const chgAbs = (last-first).toFixed(2);
+  const chgPct = ((last-first)/first*100).toFixed(2);
+  document.getElementById('cbName').textContent = `${selectedTicker} · ${d.exchange||''}`;
+  document.getElementById('cbPrice').textContent = formatPrice(d.price, d.currency);
+  document.getElementById('cbChg').textContent = `${up?'+':''}${chgAbs} (${up?'+':''}${chgPct}%)`;
+  document.getElementById('cbChg').className = 'cb-chg '+(up?'chg-up-t':'chg-dn-t');
+  document.querySelector('.cb-chg.chg-up-t, .cb-chg.chg-dn-t')?.style && (document.getElementById('cbChg').style.color = up?'#2d9e6b':'#d94f4f');
+  bigChart = new Chart(ctx,{type:'line',data:{labels,datasets:[{data:vals,borderColor:col,borderWidth:2,pointRadius:0,tension:0.3,fill:true,backgroundColor:up?'rgba(45,158,107,0.06)':'rgba(217,79,79,0.06)'}]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${formatPrice(ctx.parsed.y,d.currency)}`}}},scales:{x:{display:true,grid:{display:false},ticks:{font:{size:10},color:'#bbb',maxTicksLimit:6}},y:{display:true,position:'right',grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{size:10},color:'#bbb',maxTicksLimit:5,callback:v=>formatPrice(v,d.currency)}}},animation:{duration:400}}});
+}
+
+// ── NEWS ──────────────────────────────────────────────────────────
+async function fetchNews(tickers){
+  const cat = CATS[currentCat];
+  try{
+    const r = await fetch('/api/news',{method:'POST',headers:{'Content-Type':'application/json'},credentials:'include',body:JSON.stringify({tickers,category:currentCat,systemPrompt:cat.sys})});
+    if(r.status===401){doLogout();return;}
+    const d = await r.json();
+    newsCache[currentCat] = d.articles||[];
+    localStorage.setItem('if_news',JSON.stringify(newsCache));
+  }catch(e){ console.error('News err',e); }
+}
+
+function renderNewsPanel(){
+  const articles = newsCache[currentCat];
+  const grid = document.getElementById('newsGrid');
+  const statsRow = document.getElementById('statsRow');
+  const cat = CATS[currentCat];
+
+  if(!articles?.length){
+    statsRow.style.display='none';
+    grid.innerHTML=`<div class="empty"><div class="empty-icon">◎</div><div class="empty-lbl">Ingen nyheder endnu</div><div class="empty-hint">Tryk "Opdater feed" for at hente nyheder</div></div>`;
+    return;
+  }
+
+  const high=articles.filter(a=>a.impact==='HIGH').length;
+  const med=articles.filter(a=>a.impact==='MEDIUM').length;
+  const bull=articles.filter(a=>a.sentiment==='bullish').length;
+  const bear=articles.filter(a=>a.sentiment==='bearish').length;
+  statsRow.style.display='flex';
+  statsRow.innerHTML=`
+    <div class="stat-pill"><div class="stat-n">${articles.length}</div><div class="stat-l">NYHEDER</div></div>
+    <div class="stat-pill"><div class="stat-n sn-r">${high}</div><div class="stat-l">HØJ IMPACT</div></div>
+    <div class="stat-pill"><div class="stat-n sn-a">${med}</div><div class="stat-l">MEDIUM</div></div>
+    <div class="stat-pill"><div class="stat-n sn-g">${bull}</div><div class="stat-l">BULLISH</div></div>
+    <div class="stat-pill"><div class="stat-n sn-r">${bear}</div><div class="stat-l">BEARISH</div></div>`;
+
+  grid.innerHTML = articles.map(a=>{
+    const ic = a.impact==='HIGH'?'nbh':a.impact==='MEDIUM'?'nbm':'nbl';
+    const il = a.impact==='HIGH'?'HØJ':a.impact==='MEDIUM'?'MEDIUM':'LAV';
+    const sc = a.sentiment==='bullish'?'nbull':a.sentiment==='bearish'?'nbear':'nneut';
+    const sl = a.sentiment==='bullish'?'↑ Bullish':a.sentiment==='bearish'?'↓ Bearish':'→ Neutral';
+    return `<div class="nc">
+      <div class="nc-top"><span class="nbadge ${ic}">${il}</span><div class="nhead">${a.headline}</div></div>
+      <div class="nsum">${a.summary}</div>
+      <div class="ndiv"></div>
+      <div class="nfoot">
+        <span class="ntag ${cat.tagClass}">${a.ticker||currentCat}</span>
+        <span class="nsent ${sc}">${sl}</span>
+        <span class="nmeta">${a.timeAgo} · ${a.source}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── INIT ──────────────────────────────────────────────────────────
+checkSession();
+</script>
+</body>
+</html>
