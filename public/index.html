@@ -606,10 +606,11 @@ function renderAssetRow(item, showChart, listKey) {
   const canvasId = 'sp-' + item.ticker.replace(/[^a-z0-9]/gi, '_');
   const fb = item.ticker.replace('-USD', '')[0];
 
+  const googleFavicon = item.domain ? `https://www.google.com/s2/favicons?domain=${item.domain}&sz=64` : '';
   return `<div class="arow${showChart ? '' : ' no-chart'}">
     <div class="alogo">
-      ${logoUrl
-        ? `<img src="${logoUrl}" alt="${item.name}" onerror="this.parentElement.innerHTML='<span class=\\'alogo-fb\\'>${fb}</span>'">`
+      ${googleFavicon
+        ? `<img src="${googleFavicon}" alt="${item.name}" onerror="this.parentElement.innerHTML='<span class=\'alogo-fb\'>${fb}</span>'">`
         : `<span class="alogo-fb">${fb}</span>`}
     </div>
     <div class="ainfo">
@@ -703,52 +704,78 @@ function closeModal(e) {
   document.getElementById('modalBackdrop').classList.add('hidden');
 }
 
+let searchTimer = null;
 function onModalSearch(val) {
-  const q = val.trim().toLowerCase();
   const res = document.getElementById('modalResults');
-  if (!q) { res.innerHTML = '<div class="modal-empty">Skriv for at søge</div>'; return; }
+  if (!val.trim()) { res.innerHTML = '<div class="modal-empty">Skriv for at søge</div>'; return; }
+  res.innerHTML = '<div class="modal-empty">Søger...</div>';
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => doSearch(val.trim()), 280);
+}
 
-  const list = lists[modalTargetList];
-  const isCrypto = list?.category === 'crypto';
-
-  const matches = KNOWN.filter(k => {
-    const isCryptoItem = k.e === 'Crypto';
-    if (isCrypto && !isCryptoItem) return false;
-    if (!isCrypto && isCryptoItem) return false;
-    return k.ticker.toLowerCase().includes(q) || k.name.toLowerCase().includes(q);
-  }).slice(0, 8);
-
-  const upper = val.trim().toUpperCase();
-  const hasExact = matches.find(m => m.ticker === upper);
-
-  let html = matches.map(k => {
-    const fb = k.ticker.replace('-USD', '')[0];
-    return `<div class="mresult" onclick="addItem('${k.ticker}','${k.name.replace(/'/g,"\\'")}','${k.domain}')">
-      <div class="mr-logo">
-        ${k.domain
-          ? `<img src="https://logo.clearbit.com/${k.domain}" alt="" onerror="this.parentElement.innerHTML='<span class=\\'mr-logo-fb\\'>${fb}</span>'">`
-          : `<span class="mr-logo-fb">${fb}</span>`}
-      </div>
-      <div>
-        <div class="mr-ticker">${k.ticker.replace('-USD','')}</div>
-        <div class="mr-name">${k.name}</div>
-      </div>
-      <span class="mr-ex">${k.e}</span>
-    </div>`;
-  }).join('');
-
-  if (!hasExact && upper) {
-    html += `<div class="mresult" onclick="addItem('${upper}','${upper}','')">
-      <div class="mr-logo"><span class="mr-logo-fb">${upper[0]}</span></div>
-      <div>
-        <div class="mr-ticker">${upper}</div>
-        <div class="mr-name">Tilføj direkte fra Yahoo Finance</div>
-      </div>
-      <span class="mr-add">Tilføj</span>
-    </div>`;
+async function doSearch(q) {
+  const res = document.getElementById('modalResults');
+  try {
+    const r = await fetch(`/api/search?q=${encodeURIComponent(q)}`, { credentials:'include' });
+    const d = await r.json();
+    const list = lists[modalTargetList];
+    const isCrypto = list?.category === 'crypto';
+    let items = (d.results || []).filter(item => {
+      const isCryptoItem = item.quoteType === 'CRYPTOCURRENCY' || item.ticker.includes('-USD');
+      return isCrypto ? isCryptoItem : !isCryptoItem;
+    });
+    if (!items.length) { res.innerHTML = '<div class="modal-empty">Ingen resultater — prøv et andet søgeord</div>'; return; }
+    res.innerHTML = items.map(item => {
+      const fb = item.ticker.replace('-USD','')[0]?.toUpperCase() || '?';
+      const domain = getDomain(item.ticker, item.name);
+      const safeName = item.name.replace(/'/g, "\'");
+      const safeDomain = (domain||'').replace(/'/g, "\'");
+      return `<div class="mresult" onclick="addItem('${item.ticker}','${safeName}','${safeDomain}')">
+        <div class="mr-logo">
+          ${domain
+            ? `<img src="https://www.google.com/s2/favicons?domain=${domain}&sz=32" alt="" onerror="this.parentElement.innerHTML='<span class=\'mr-logo-fb\'>${fb}</span>'">`
+            : `<span class="mr-logo-fb">${fb}</span>`}
+        </div>
+        <div style="min-width:0;flex:1">
+          <div class="mr-ticker">${item.ticker.replace('-USD','')}</div>
+          <div class="mr-name">${item.name}</div>
+        </div>
+        <span class="mr-ex">${item.exchange}</span>
+      </div>`;
+    }).join('');
+  } catch(e) {
+    res.innerHTML = '<div class="modal-empty">Søgning fejlede — prøv igen</div>';
   }
+}
 
-  res.innerHTML = html || '<div class="modal-empty">Ingen resultater</div>';
+function getDomain(ticker, name) {
+  const domainMap = {
+    'AAPL':'apple.com','MSFT':'microsoft.com','NVDA':'nvidia.com','GOOGL':'google.com',
+    'AMZN':'amazon.com','META':'meta.com','TSLA':'tesla.com','BABA':'alibaba.com',
+    'DLO':'dlocal.com','NFLX':'netflix.com','SPOT':'spotify.com','UBER':'uber.com',
+    'SHOP':'shopify.com','ABNB':'airbnb.com','JPM':'jpmorganchase.com','V':'visa.com',
+    'MA':'mastercard.com','AMD':'amd.com','INTC':'intel.com','WMT':'walmart.com',
+    'NOVO B':'novonordisk.com','NOVOB.CO':'novonordisk.com','MAERSK-B.CO':'maersk.com',
+    'DSV.CO':'dsv.com','ORSTED.CO':'orsted.com','GMAB':'genmab.com',
+    'BTC-USD':'bitcoin.org','ETH-USD':'ethereum.org','XLM-USD':'stellar.org',
+    'SOL-USD':'solana.com','BNB-USD':'bnbchain.org','XRP-USD':'ripple.com',
+    'ADA-USD':'cardano.org','DOGE-USD':'dogecoin.com','AVAX-USD':'avax.network',
+    'LINK-USD':'chain.link','DOT-USD':'polkadot.network','MATIC-USD':'polygon.technology',
+  };
+  if (domainMap[ticker]) return domainMap[ticker];
+  const n = name.toLowerCase();
+  if (n.includes('apple')) return 'apple.com';
+  if (n.includes('microsoft')) return 'microsoft.com';
+  if (n.includes('nvidia')) return 'nvidia.com';
+  if (n.includes('amazon')) return 'amazon.com';
+  if (n.includes('tesla')) return 'tesla.com';
+  if (n.includes('netflix')) return 'netflix.com';
+  if (n.includes('spotify')) return 'spotify.com';
+  if (n.includes('novo nordisk')) return 'novonordisk.com';
+  if (n.includes('bitcoin')) return 'bitcoin.org';
+  if (n.includes('ethereum')) return 'ethereum.org';
+  if (n.includes('stellar')) return 'stellar.org';
+  return '';
 }
 
 function addItem(ticker, name, domain) {

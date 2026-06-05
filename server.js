@@ -96,32 +96,26 @@ app.get('/api/chart/:ticker', requireAuth, async (req, res) => {
   }
 });
 
-// ── Ticker autocomplete ───────────────────────────────────────────
-const TICKERS = [
-  {t:'NOVO B',n:'Novo Nordisk',e:'CPH'},{t:'MAERSK B',n:'A.P. Møller-Mærsk',e:'CPH'},
-  {t:'DSV',n:'DSV A/S',e:'CPH'},{t:'ORSTED',n:'Ørsted',e:'CPH'},{t:'COLOB',n:'Coloplast',e:'CPH'},
-  {t:'DEMANT',n:'Demant',e:'CPH'},{t:'GMAB',n:'Genmab',e:'CPH'},
-  {t:'AAPL',n:'Apple',e:'NASDAQ'},{t:'MSFT',n:'Microsoft',e:'NASDAQ'},{t:'NVDA',n:'NVIDIA',e:'NASDAQ'},
-  {t:'GOOGL',n:'Alphabet',e:'NASDAQ'},{t:'AMZN',n:'Amazon',e:'NASDAQ'},{t:'META',n:'Meta',e:'NASDAQ'},
-  {t:'TSLA',n:'Tesla',e:'NASDAQ'},{t:'BABA',n:'Alibaba',e:'NYSE'},{t:'DLO',n:'dLocal',e:'NASDAQ'},
-  {t:'NFLX',n:'Netflix',e:'NASDAQ'},{t:'AMD',n:'AMD',e:'NASDAQ'},{t:'INTC',n:'Intel',e:'NASDAQ'},
-  {t:'JPM',n:'JPMorgan Chase',e:'NYSE'},{t:'BAC',n:'Bank of America',e:'NYSE'},
-  {t:'V',n:'Visa',e:'NYSE'},{t:'MA',n:'Mastercard',e:'NYSE'},{t:'WMT',n:'Walmart',e:'NYSE'},
-  {t:'PYPL',n:'PayPal',e:'NASDAQ'},{t:'SHOP',n:'Shopify',e:'NYSE'},{t:'SPOT',n:'Spotify',e:'NYSE'},
-  {t:'UBER',n:'Uber',e:'NYSE'},{t:'ABNB',n:'Airbnb',e:'NASDAQ'},
-  {t:'BTC-USD',n:'Bitcoin',e:'Crypto'},{t:'ETH-USD',n:'Ethereum',e:'Crypto'},
-  {t:'XLM-USD',n:'Stellar Lumens',e:'Crypto'},{t:'SOL-USD',n:'Solana',e:'Crypto'},
-  {t:'BNB-USD',n:'BNB',e:'Crypto'},{t:'XRP-USD',n:'XRP',e:'Crypto'},
-  {t:'ADA-USD',n:'Cardano',e:'Crypto'},{t:'DOGE-USD',n:'Dogecoin',e:'Crypto'},
-];
-
-app.get('/api/search', requireAuth, (req, res) => {
-  const q = (req.query.q || '').toLowerCase().trim();
+// ── Ticker search via Yahoo Finance autocomplete ─────────────────
+app.get('/api/search', requireAuth, async (req, res) => {
+  const q = (req.query.q || '').trim();
   if (!q) return res.json({ results: [] });
-  const results = TICKERS.filter(t =>
-    t.t.toLowerCase().includes(q) || t.n.toLowerCase().includes(q)
-  ).slice(0, 6);
-  res.json({ results });
+  try {
+    const url = `https://query1.finance.yahoo.com/v1/finance/search?q=${encodeURIComponent(q)}&quotesCount=8&newsCount=0&listsCount=0`;
+    const r = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+    const d = await r.json();
+    const quotes = (d.quotes || []).filter(q => q.symbol && q.shortname && ['EQUITY','CRYPTOCURRENCY','ETF','MUTUALFUND'].includes(q.quoteType));
+    const results = quotes.slice(0, 8).map(q => ({
+      ticker: q.symbol,
+      name: q.shortname || q.longname || q.symbol,
+      exchange: q.exchange || q.quoteType,
+      quoteType: q.quoteType,
+    }));
+    res.json({ results });
+  } catch(e) {
+    console.error('Search fejl:', e);
+    res.json({ results: [] });
+  }
 });
 
 // ── News (NewsAPI + Claude analyse) ──────────────────────────────
@@ -132,7 +126,11 @@ async function fetchNewsAPI(tickers) {
   const r = await fetch(url);
   const d = await r.json();
   if (d.status !== 'ok') throw new Error('NewsAPI fejl: ' + d.message);
-  return (d.articles || []).slice(0, 15).map(a => `- ${a.title} (${a.source?.name}, ${new Date(a.publishedAt).toLocaleDateString('da')})`).join('\n');
+  const arts = (d.articles || []).slice(0, 15);
+  // Store URLs for later lookup by title
+  global._newsUrls = global._newsUrls || {};
+  arts.forEach(a => { if (a.url) global._newsUrls[a.title] = { url: a.url, source: a.source?.name }; });
+  return arts.map(a => `- ${a.title} (${a.source?.name}, ${new Date(a.publishedAt).toLocaleDateString('da')})`).join('\n');
 }
 
 app.post('/api/news', requireAuth, async (req, res) => {
