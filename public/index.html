@@ -606,13 +606,8 @@ function renderAssetRow(item, showChart, listKey) {
   const canvasId = 'sp-' + item.ticker.replace(/[^a-z0-9]/gi, '_');
   const fb = item.ticker.replace('-USD', '')[0];
 
-  const googleFavicon = item.domain ? `https://www.google.com/s2/favicons?domain=${item.domain}&sz=64` : '';
   return `<div class="arow${showChart ? '' : ' no-chart'}">
-    <div class="alogo">
-      ${googleFavicon
-        ? `<img src="${googleFavicon}" alt="${item.name}" onerror="this.parentElement.innerHTML='<span class=\'alogo-fb\'>${fb}</span>'">`
-        : `<span class="alogo-fb">${fb}</span>`}
-    </div>
+    ${getLogoHtml(item.ticker, item.name, 32)}
     <div class="ainfo">
       <div class="aticker">${item.ticker.replace('-USD', '')}</div>
       <div class="aname">${item.name}</div>
@@ -731,11 +726,7 @@ async function doSearch(q) {
       const safeName = item.name.replace(/'/g, "\'");
       const safeDomain = (domain||'').replace(/'/g, "\'");
       return `<div class="mresult" onclick="addItem('${item.ticker}','${safeName}','${safeDomain}')">
-        <div class="mr-logo">
-          ${domain
-            ? `<img src="https://www.google.com/s2/favicons?domain=${domain}&sz=32" alt="" onerror="this.parentElement.innerHTML='<span class=\'mr-logo-fb\'>${fb}</span>'">`
-            : `<span class="mr-logo-fb">${fb}</span>`}
-        </div>
+        ${getLogoHtml(item.ticker, item.name, 28)}
         <div style="min-width:0;flex:1">
           <div class="mr-ticker">${item.ticker.replace('-USD','')}</div>
           <div class="mr-name">${item.name}</div>
@@ -935,6 +926,68 @@ function fmtPrice(p, currency) {
   if (currency === 'USD') return n < 1 ? `$${n.toFixed(4)}` : `$${n.toLocaleString('da', {minimumFractionDigits:2, maximumFractionDigits:2})}`;
   if (currency === 'DKK') return `DKK ${Math.round(n).toLocaleString('da')}`;
   return `${n.toFixed(2)} ${currency || ''}`;
+}
+
+// ── LOGO LIBRARY ─────────────────────────────────────────────────
+const LOGOS = {
+  // Aktier — emoji + farve som fallback
+  'AAPL':    { bg:'#000000', fg:'#fff', label:'🍎' },
+  'MSFT':    { bg:'#00a4ef', fg:'#fff', label:'⊞' },
+  'NVDA':    { bg:'#76b900', fg:'#fff', label:'N' },
+  'GOOGL':   { bg:'#4285f4', fg:'#fff', label:'G' },
+  'GOOG':    { bg:'#4285f4', fg:'#fff', label:'G' },
+  'AMZN':    { bg:'#ff9900', fg:'#fff', label:'A' },
+  'META':    { bg:'#0866ff', fg:'#fff', label:'f' },
+  'TSLA':    { bg:'#e31937', fg:'#fff', label:'T' },
+  'BABA':    { bg:'#ff6a00', fg:'#fff', label:'阿' },
+  'DLO':     { bg:'#1a1a2e', fg:'#fff', label:'d' },
+  'NFLX':    { bg:'#e50914', fg:'#fff', label:'N' },
+  'SPOT':    { bg:'#1db954', fg:'#fff', label:'♫' },
+  'UBER':    { bg:'#000000', fg:'#fff', label:'U' },
+  'SHOP':    { bg:'#96bf48', fg:'#fff', label:'S' },
+  'ABNB':    { bg:'#ff5a5f', fg:'#fff', label:'△' },
+  'JPM':     { bg:'#005eb8', fg:'#fff', label:'J' },
+  'V':       { bg:'#1a1f71', fg:'#fff', label:'V' },
+  'MA':      { bg:'#eb001b', fg:'#fff', label:'M' },
+  'AMD':     { bg:'#ed1c24', fg:'#fff', label:'A' },
+  'INTC':    { bg:'#0071c5', fg:'#fff', label:'i' },
+  'WMT':     { bg:'#0071dc', fg:'#fff', label:'W' },
+  'PYPL':    { bg:'#003087', fg:'#fff', label:'P' },
+  // Danske
+  'NOVO B':  { bg:'#003b7a', fg:'#fff', label:'N' },
+  'NOVOB.CO':{ bg:'#003b7a', fg:'#fff', label:'N' },
+  'MAERSK B':{ bg:'#003a70', fg:'#fff', label:'M' },
+  'DSV':     { bg:'#e2001a', fg:'#fff', label:'D' },
+  'DSV.CO':  { bg:'#e2001a', fg:'#fff', label:'D' },
+  'ORSTED':  { bg:'#cc0000', fg:'#fff', label:'Ø' },
+  'GMAB':    { bg:'#00548b', fg:'#fff', label:'G' },
+  'COLOB':   { bg:'#004f9f', fg:'#fff', label:'C' },
+  'DEMANT':  { bg:'#00205b', fg:'#fff', label:'D' },
+  // Krypto
+  'BTC-USD': { bg:'#f7931a', fg:'#fff', label:'₿' },
+  'ETH-USD': { bg:'#627eea', fg:'#fff', label:'Ξ' },
+  'XLM-USD': { bg:'#000000', fg:'#fff', label:'✦' },
+  'SOL-USD': { bg:'#9945ff', fg:'#fff', label:'◎' },
+  'BNB-USD': { bg:'#f3ba2f', fg:'#000', label:'⬡' },
+  'XRP-USD': { bg:'#346aa9', fg:'#fff', label:'✕' },
+  'ADA-USD': { bg:'#0033ad', fg:'#fff', label:'₳' },
+  'DOGE-USD':{ bg:'#c2a633', fg:'#fff', label:'Ð' },
+  'AVAX-USD':{ bg:'#e84142', fg:'#fff', label:'A' },
+  'LINK-USD':{ bg:'#2a5ada', fg:'#fff', label:'⬡' },
+  'DOT-USD': { bg:'#e6007a', fg:'#fff', label:'●' },
+  'MATIC-USD':{ bg:'#8247e5', fg:'#fff', label:'M' },
+};
+
+function getLogoHtml(ticker, name, size=32) {
+  const logo = LOGOS[ticker] || LOGOS[ticker.toUpperCase()];
+  const r = Math.round(size * 0.25);
+  const fs = Math.round(size * 0.45);
+  if (logo) {
+    return `<div style="width:${size}px;height:${size}px;border-radius:${r}px;background:${logo.bg};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:${fs}px;color:${logo.fg};font-weight:600;font-family:system-ui">${logo.label}</div>`;
+  }
+  // Fallback: første bogstav med varm beige
+  const letter = (ticker.replace('-USD','')+' ')[0].toUpperCase();
+  return `<div style="width:${size}px;height:${size}px;border-radius:${r}px;background:var(--surface2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:${fs}px;color:var(--text2);font-weight:600;font-family:system-ui">${letter}</div>`;
 }
 
 checkSession();
