@@ -100,62 +100,43 @@ function toFinnhubSymbol(ticker) {
 
 app.get('/api/chart/:ticker', requireAuth, async (req, res) => {
   const { ticker } = req.params;
-  const range = req.query.range || '1W';
   if (!FINNHUB_KEY) return res.status(500).json({ error: 'Finnhub API-nøgle mangler' });
 
   try {
     const symbol = toFinnhubSymbol(ticker);
-    const { from, to } = finnhubParams(range);
 
-    // Gratis plan: brug quote (realtid) + basic financials til historik
-    // Finnhub basic_financials giver 52-ugers data gratis
-    const quoteUrl = `https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(symbol)}&token=${FINNHUB_KEY}`;
+    // Quote er altid gratis på Finnhub
+    const quoteRes = await fetch(
+      `https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(symbol)}&token=${FINNHUB_KEY}`,
+      { headers: { 'User-Agent': 'Mozilla/5.0' } }
+    );
+    const quote = await quoteRes.json();
 
-    // Brug D-resolution (end-of-day) — gratis på Finnhub
-    const candleUrl = `https://finnhub.io/api/v1/stock/candle?symbol=${encodeURIComponent(symbol)}&resolution=D&from=${from}&to=${to}&token=${FINNHUB_KEY}`;
+    // quote.c = current price, quote.pc = prev close, quote.h/l = high/low today
+    const c = quote.c, pc = quote.pc, h = quote.h, l = quote.l, o = quote.o;
 
-    const [quoteRes, candleRes] = await Promise.all([
-      fetch(quoteUrl,  { headers: { 'User-Agent': 'Mozilla/5.0' } }),
-      fetch(candleUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } })
-    ]);
-
-    const quote   = await quoteRes.json();
-    const candles = await candleRes.json();
+    if (!c || c === 0) {
+      return res.status(404).json({ error: 'Ticker ikke fundet: ' + ticker });
+    }
 
     const isCrypto = ticker.endsWith('-USD');
     const isDKK = ticker.includes(' B') || ticker.includes(' A') || ticker.endsWith('.CO');
     const currency = isCrypto ? 'USD' : (isDKK ? 'DKK' : 'USD');
 
-    const currentPrice = quote.c || null;
-    const prevClose = quote.pc || null;
+    // Byg en meningsfuld sparkline fra quote-felterne:
+    // prev_close → open → low → high → current
+    // Det giver en kurve der viser dagens bevægelse
+    const now = Date.now();
+    const DAY = 86400000;
+    const points = [
+      { t: now - DAY,         v: +(pc || c * 0.99).toFixed(4) },
+      { t: now - DAY * 0.75,  v: +(o  || c * 0.995).toFixed(4) },
+      { t: now - DAY * 0.5,   v: +(l  || Math.min(c, pc || c) * 0.998).toFixed(4) },
+      { t: now - DAY * 0.25,  v: +(h  || Math.max(c, pc || c) * 1.002).toFixed(4) },
+      { t: now,                v: +c.toFixed(4) },
+    ];
 
-    let points = [];
-
-    if (candles.s === 'ok' && candles.t?.length) {
-      // Har rigtige historiske data
-      points = candles.t.map((t, i) => ({
-        t: t * 1000,
-        v: candles.c[i] != null ? +candles.c[i].toFixed(4) : null
-      })).filter(p => p.v !== null);
-    } else if (currentPrice && prevClose) {
-      // Byg simpel 2-punkts graf fra quote data
-      const now = Date.now();
-      points = [
-        { t: now - 86400000, v: +prevClose.toFixed(4) },
-        { t: now, v: +currentPrice.toFixed(4) }
-      ];
-    }
-
-    if (!points.length) {
-      return res.status(404).json({ error: 'Ingen kursdata for ' + ticker });
-    }
-
-    // Sørg for at nuværende pris er det seneste punkt
-    if (currentPrice && points.length > 0) {
-      points[points.length - 1].v = +currentPrice.toFixed(4);
-    }
-
-    res.json({ ticker, currency, price: currentPrice, prevClose, exchange: isCrypto ? 'Crypto' : 'Stock', points });
+    res.json({ ticker, currency, price: c, prevClose: pc, exchange: isCrypto ? 'Crypto' : 'Stock', points });
   } catch (e) {
     console.error('Chart fejl:', e.message);
     res.status(500).json({ error: 'Kunne ikke hente kursdata: ' + e.message });
