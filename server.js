@@ -105,43 +105,60 @@ app.get('/api/chart/:ticker', requireAuth, async (req, res) => {
 
   try {
     const symbol = toFinnhubSymbol(ticker);
-    const { resolution, from, to } = finnhubParams(range);
+    const { from, to } = finnhubParams(range);
 
-    // Get candles
-    const candleUrl = `https://finnhub.io/api/v1/stock/candle?symbol=${encodeURIComponent(symbol)}&resolution=${resolution}&from=${from}&to=${to}&token=${FINNHUB_KEY}`;
-    const quoteUrl  = `https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(symbol)}&token=${FINNHUB_KEY}`;
+    // Gratis plan: brug quote (realtid) + basic financials til historik
+    // Finnhub basic_financials giver 52-ugers data gratis
+    const quoteUrl = `https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(symbol)}&token=${FINNHUB_KEY}`;
 
-    const [candleRes, quoteRes] = await Promise.all([
-      fetch(candleUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } }),
-      fetch(quoteUrl,  { headers: { 'User-Agent': 'Mozilla/5.0' } })
+    // Brug D-resolution (end-of-day) — gratis på Finnhub
+    const candleUrl = `https://finnhub.io/api/v1/stock/candle?symbol=${encodeURIComponent(symbol)}&resolution=D&from=${from}&to=${to}&token=${FINNHUB_KEY}`;
+
+    const [quoteRes, candleRes] = await Promise.all([
+      fetch(quoteUrl,  { headers: { 'User-Agent': 'Mozilla/5.0' } }),
+      fetch(candleUrl, { headers: { 'User-Agent': 'Mozilla/5.0' } })
     ]);
 
-    const candles = await candleRes.json();
     const quote   = await quoteRes.json();
-
-    if (candles.s === 'no_data' || !candles.t?.length) {
-      return res.status(404).json({ error: 'Ingen kursdata tilgængeligt for ' + ticker });
-    }
-
-    const points = candles.t.map((t, i) => ({
-      t: t * 1000,
-      v: candles.c[i] != null ? +candles.c[i].toFixed(4) : null
-    })).filter(p => p.v !== null);
+    const candles = await candleRes.json();
 
     const isCrypto = ticker.endsWith('-USD');
-    const currency = isCrypto ? 'USD' : (ticker.includes('.CO') || ticker.endsWith(' B') || ticker.endsWith(' A') ? 'DKK' : 'USD');
+    const isDKK = ticker.includes(' B') || ticker.includes(' A') || ticker.endsWith('.CO');
+    const currency = isCrypto ? 'USD' : (isDKK ? 'DKK' : 'USD');
 
-    res.json({
-      ticker,
-      currency,
-      price: quote.c || points.at(-1)?.v,
-      prevClose: quote.pc,
-      exchange: isCrypto ? 'Crypto' : 'Stock',
-      points
-    });
+    const currentPrice = quote.c || null;
+    const prevClose = quote.pc || null;
+
+    let points = [];
+
+    if (candles.s === 'ok' && candles.t?.length) {
+      // Har rigtige historiske data
+      points = candles.t.map((t, i) => ({
+        t: t * 1000,
+        v: candles.c[i] != null ? +candles.c[i].toFixed(4) : null
+      })).filter(p => p.v !== null);
+    } else if (currentPrice && prevClose) {
+      // Byg simpel 2-punkts graf fra quote data
+      const now = Date.now();
+      points = [
+        { t: now - 86400000, v: +prevClose.toFixed(4) },
+        { t: now, v: +currentPrice.toFixed(4) }
+      ];
+    }
+
+    if (!points.length) {
+      return res.status(404).json({ error: 'Ingen kursdata for ' + ticker });
+    }
+
+    // Sørg for at nuværende pris er det seneste punkt
+    if (currentPrice && points.length > 0) {
+      points[points.length - 1].v = +currentPrice.toFixed(4);
+    }
+
+    res.json({ ticker, currency, price: currentPrice, prevClose, exchange: isCrypto ? 'Crypto' : 'Stock', points });
   } catch (e) {
     console.error('Chart fejl:', e.message);
-    res.status(500).json({ error: 'Kunne ikke hente kursdata' });
+    res.status(500).json({ error: 'Kunne ikke hente kursdata: ' + e.message });
   }
 });
 
