@@ -894,15 +894,65 @@ async function refreshAll() {
   renderListsMain();
 }
 
+const RANGE_MAP = { '1D':'1d', '1W':'5d', '1M':'1mo', '3M':'3mo', '1Y':'1y' };
+const INTERVAL_MAP = { '1D':'5m', '1W':'60m', '1M':'1d', '3M':'1d', '1Y':'1wk' };
+
 async function fetchChart(ticker, range) {
   try {
-    const r = await fetch(`/api/chart/${encodeURIComponent(ticker)}?range=${range}`, { credentials:'include' });
-    if (r.status === 401) { doLogout(); return; }
-    const d = await r.json();
-    if (!chartData[ticker]) chartData[ticker] = {};
-    chartData[ticker][range] = d;
-    localStorage.setItem('if4_charts', JSON.stringify(chartData));
-  } catch(e) { console.error('Chart err', e); }
+    // Try Yahoo Finance directly from browser (works client-side)
+    const yRange = RANGE_MAP[range] || '5d';
+    const yInterval = INTERVAL_MAP[range] || '60m';
+    const yTicker = ticker.replace(' B', '-B.CO').replace(' A', '-A.CO');
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yTicker)}?range=${yRange}&interval=${yInterval}&includePrePost=false`;
+    const r = await fetch(url, { headers: { 'Accept': 'application/json' } });
+
+    if (r.ok) {
+      const data = await r.json();
+      const result = data?.chart?.result?.[0];
+      if (result?.timestamp?.length) {
+        const timestamps = result.timestamp;
+        const closes = result.indicators?.quote?.[0]?.close || [];
+        const meta = result.meta || {};
+        const points = timestamps.map((t, i) => ({
+          t: t * 1000,
+          v: closes[i] != null ? +closes[i].toFixed(4) : null
+        })).filter(p => p.v !== null);
+
+        if (!chartData[ticker]) chartData[ticker] = {};
+        chartData[ticker][range] = {
+          ticker,
+          currency: meta.currency || 'USD',
+          price: meta.regularMarketPrice,
+          prevClose: meta.chartPreviousClose,
+          exchange: meta.exchangeName,
+          points
+        };
+        localStorage.setItem('if4_charts', JSON.stringify(chartData));
+        return;
+      }
+    }
+
+    // Fallback: server endpoint (Finnhub quote)
+    const fallback = await fetch(`/api/chart/${encodeURIComponent(ticker)}?range=${range}`, { credentials:'include' });
+    if (fallback.status === 401) { doLogout(); return; }
+    if (fallback.ok) {
+      const d = await fallback.json();
+      if (!chartData[ticker]) chartData[ticker] = {};
+      chartData[ticker][range] = d;
+      localStorage.setItem('if4_charts', JSON.stringify(chartData));
+    }
+  } catch(e) {
+    // Silent fallback
+    try {
+      const fallback = await fetch(`/api/chart/${encodeURIComponent(ticker)}?range=${range}`, { credentials:'include' });
+      if (fallback.ok) {
+        const d = await fallback.json();
+        if (!chartData[ticker]) chartData[ticker] = {};
+        chartData[ticker][range] = d;
+        localStorage.setItem('if4_charts', JSON.stringify(chartData));
+      }
+    } catch(e2) { console.error('Chart fallback err', e2); }
+  }
 }
 
 async function fetchNewsGroup(tickers, cat) {
