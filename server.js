@@ -100,46 +100,34 @@ function toFinnhubSymbol(ticker) {
 
 app.get('/api/chart/:ticker', requireAuth, async (req, res) => {
   const { ticker } = req.params;
+  const range = req.query.range || '1W';
   if (!FINNHUB_KEY) return res.status(500).json({ error: 'Finnhub API-nøgle mangler' });
 
   try {
     const symbol = toFinnhubSymbol(ticker);
-
-    // Quote er altid gratis på Finnhub
     const quoteRes = await fetch(
       `https://finnhub.io/api/v1/quote?symbol=${encodeURIComponent(symbol)}&token=${FINNHUB_KEY}`,
       { headers: { 'User-Agent': 'Mozilla/5.0' } }
     );
     const quote = await quoteRes.json();
-
-    // quote.c = current price, quote.pc = prev close, quote.h/l = high/low today
     const c = quote.c, pc = quote.pc, h = quote.h, l = quote.l, o = quote.o;
-
-    if (!c || c === 0) {
-      return res.status(404).json({ error: 'Ticker ikke fundet: ' + ticker });
-    }
+    if (!c || c === 0) return res.status(404).json({ error: 'Ticker ikke fundet: ' + ticker });
 
     const isCrypto = ticker.endsWith('-USD');
     const isDKK = ticker.includes(' B') || ticker.includes(' A') || ticker.endsWith('.CO');
     const currency = isCrypto ? 'USD' : (isDKK ? 'DKK' : 'USD');
-
-    // Byg en meningsfuld sparkline fra quote-felterne:
-    // prev_close → open → low → high → current
-    // Det giver en kurve der viser dagens bevægelse
     const now = Date.now();
     const DAY = 86400000;
     const points = [
-      { t: now - DAY,         v: +(pc || c * 0.99).toFixed(4) },
-      { t: now - DAY * 0.75,  v: +(o  || c * 0.995).toFixed(4) },
-      { t: now - DAY * 0.5,   v: +(l  || Math.min(c, pc || c) * 0.998).toFixed(4) },
-      { t: now - DAY * 0.25,  v: +(h  || Math.max(c, pc || c) * 1.002).toFixed(4) },
-      { t: now,                v: +c.toFixed(4) },
+      { t: now - DAY,        v: +(pc || c).toFixed(4) },
+      { t: now - DAY * 0.6,  v: +(o  || c).toFixed(4) },
+      { t: now - DAY * 0.3,  v: +(l  || c).toFixed(4) },
+      { t: now - DAY * 0.1,  v: +(h  || c).toFixed(4) },
+      { t: now,               v: +c.toFixed(4) },
     ];
-
     res.json({ ticker, currency, price: c, prevClose: pc, exchange: isCrypto ? 'Crypto' : 'Stock', points });
   } catch (e) {
-    console.error('Chart fejl:', e.message);
-    res.status(500).json({ error: 'Kunne ikke hente kursdata: ' + e.message });
+    res.status(500).json({ error: e.message });
   }
 });
 
@@ -174,10 +162,7 @@ async function fetchNewsAPI(tickers) {
   const d = await r.json();
   if (d.status !== 'ok') throw new Error('NewsAPI fejl: ' + d.message);
   const arts = (d.articles || []).slice(0, 15);
-  // Store URLs for later lookup by title
-  global._newsUrls = global._newsUrls || {};
-  arts.forEach(a => { if (a.url) global._newsUrls[a.title] = { url: a.url, source: a.source?.name }; });
-  return arts.map(a => `- ${a.title} (${a.source?.name}, ${new Date(a.publishedAt).toLocaleDateString('da')})`).join('\n');
+  return arts.map((a, i) => `[${i}] ${a.title} | Kilde: ${a.source?.name || 'Ukendt'} | URL: ${a.url || ''} | Dato: ${new Date(a.publishedAt).toLocaleDateString('da')}`).join('\n');
 }
 
 app.post('/api/news', requireAuth, async (req, res) => {
@@ -197,21 +182,24 @@ app.post('/api/news', requireAuth, async (req, res) => {
 
 Aktiver/emner: ${tickers.join(', ')}
 
-${newsContext ? `Her er de seneste nyheder fra de last 24 timer:\n${newsContext}\n\nAnalyser disse nyheder og` : 'Baseret på din viden,'} returner KUN et JSON-array (ingen markdown, ingen backticks) med max 10 nyheder sorteret efter investeringsrelevans:
+${newsContext ? `Her er de seneste nyheder fra de seneste 24 timer (hvert punkt har et nummer [N], kildenavn og URL):\n${newsContext}\n\nAnalyser disse nyheder og returner` : 'Returner'} KUN et JSON-array (ingen markdown, ingen backticks) med max 10 nyheder sorteret efter investeringsrelevans:
 [{
   "ticker": "TICKER eller EMNE",
   "headline": "Overskrift på dansk (max 15 ord)",
   "summary": "2-3 sætninger investoranalyse på dansk — hvad betyder det for kursen?",
-  "impact": "HIGH",
-  "sentiment": "bullish",
+  "impact": "HIGH" | "MEDIUM" | "LOW",
+  "sentiment": "bullish" | "bearish" | "neutral",
   "timeAgo": "fx 'i dag' eller 'i går'",
-  "source": "kildenavn fra listen ovenfor"
+  "source": "Kildenavn fra listen (fx Reuters, Bloomberg)",
+  "url": "Den præcise URL fra listen ovenfor — SKAL inkluderes hvis tilgængelig, ellers tom streng"
 }]
 
 Impact-kriterier:
 - HIGH: Direkte kurspåvirkning, earnings, policyændringer
 - MEDIUM: Sektortrends, analytikervurderinger
-- LOW: Baggrundsinformation`;
+- LOW: Baggrundsinformation
+
+VIGTIGT: Inkluder altid URL og source fra den nummererede liste ovenfor.`;
 
     const data = await callAnthropic(prompt, false);
 
